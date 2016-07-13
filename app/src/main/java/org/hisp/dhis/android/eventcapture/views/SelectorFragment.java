@@ -232,11 +232,12 @@ public class SelectorFragment extends BaseFragment implements SelectorView {
     @Override
     public void showPickers(Picker pickerTree) {
         if (pickerTree.getChildren().isEmpty()) {
-            TextView textView = (TextView) getActivity()
-                    .findViewById(R.id.textview_error_no_org_units);
-            //in the case that error was shown and the user was assigned organisation units,
-            //hide the error message :
-            textView.setVisibility(View.GONE);
+            TextView noOrgUnitsErrorText =
+                    (TextView) getActivity().findViewById(R.id.textview_error_no_org_units);
+            //in the case that error was shown and the user was assigned organisation units/programs,
+            //hide the error messages :
+            noOrgUnitsErrorText.setVisibility(View.GONE);
+            hideProgramError();
         }
         //and try toshow the pickers:
         pickerAdapter.swapData(pickerTree);
@@ -259,10 +260,19 @@ public class SelectorFragment extends BaseFragment implements SelectorView {
     @Override
     public void showNoOrganisationUnitsError() {
         //pickerAdapter.swapData(null);
-        TextView textView = (TextView) getActivity()
+        TextView noOrgUnitsTextView = (TextView) getActivity()
                 .findViewById(R.id.textview_error_no_org_units);
-        textView.setVisibility(View.VISIBLE);
-        textView.setText(getString(R.string.no_organisation_units));
+        noOrgUnitsTextView.setVisibility(View.VISIBLE);
+        noOrgUnitsTextView.setText(getString(R.string.no_organisation_units));
+    }
+
+    @Override
+    public void showNoProgramsError() {
+        //pickerAdapter.swapData(null);
+        TextView noProgramsTextView = (TextView) getActivity()
+                .findViewById(R.id.textview_error_no_programs);
+        noProgramsTextView.setVisibility(View.VISIBLE);
+        noProgramsTextView.setText(getString(R.string.no_programs));
     }
 
     @Override
@@ -480,23 +490,28 @@ public class SelectorFragment extends BaseFragment implements SelectorView {
         onCreateEventButtonClickListener.setPickers(pickers);
         if (areAllPickersPresent(pickers)) {
             showCreateEventButton();
-
-            // load existing eventsz
+            // load existing events
             selectorPresenter.listEvents(getOrganisationUnitUid(pickers), getProgramUid(pickers));
         } else {
             hideCreateEventButton();
             //This is uncommented, because it introduces buggy behaviour to the bottomSheet.
             //The bottom sheet is opened, but the pickers don't show unless the user clicks on the position where they should be shown.
             //showBottomSheet();
-
             // clear out list of existing events
             if (reportEntityAdapter != null) {
                 reportEntityAdapter.swapData(null);
             }
+            //todo: No program avail --> show error.
+            if (areNoProgramsPickersPresent(pickers)) {
+                showNoProgramsError();
+                System.out.println("No programs assigned !");
+            } else {
+                //previously shown but has to hide:
+                hideProgramError();
+                //TODO : hide it here:
+            }
         }
-
         updateLabels(pickers);
-
         selectorPresenter.onPickersSelectionsChanged(pickers);
     }
 
@@ -507,6 +522,23 @@ public class SelectorFragment extends BaseFragment implements SelectorView {
                 pickers.get(ORG_UNIT_PICKER_ID).getSelectedChild() != null &&
                 pickers.get(PROGRAM_UNIT_PICKER_ID) != null &&
                 pickers.get(PROGRAM_UNIT_PICKER_ID).getSelectedChild() != null;
+    }
+
+    /* check if organisation unit is selected but it has no children
+    *
+    * i.e. User is not assigned to any programs within the Organisation Unit.
+     */
+    public boolean areNoProgramsPickersPresent(List<Picker> pickers) {
+        return pickers != null &&
+                pickers.get(ORG_UNIT_PICKER_ID) != null &&
+                pickers.get(ORG_UNIT_PICKER_ID).getSelectedChild() != null &&
+                (pickers.size() <= PROGRAM_UNIT_PICKER_ID || pickers.get(PROGRAM_UNIT_PICKER_ID) == null);
+    }
+
+    private void hideProgramError() {
+        TextView noProgramsErrorText =
+                (TextView) getActivity().findViewById(R.id.textview_error_no_programs);
+        noProgramsErrorText.setVisibility(View.GONE);
     }
 
     private void showCreateEventButton() {

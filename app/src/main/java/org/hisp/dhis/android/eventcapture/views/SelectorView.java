@@ -54,6 +54,8 @@ public interface SelectorView extends View {
 
     void showNoOrganisationUnitsError();
 
+    void showNoProgramsError();
+
     void showError(String message);
 
     void showUnexpectedError(String message);

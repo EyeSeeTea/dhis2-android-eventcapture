@@ -471,7 +471,6 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                         dataElementName, value);
 
                 dataElementLabels.add(dataElementLabel);
-
             }
 
             reportEntities.add(new ReportEntity(event.getUId(), status, dataElementLabels));
@@ -518,8 +517,6 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         String chooseProgram = selectorView != null ? selectorView
                 .getPickerLabel(SelectorView.ID_CHOOSE_PROGRAM) : "";
 
-        //TODO: debug clear remove:
-        assignedProgramsMap.clear();
         if (selectorView != null && organisationUnitMap.isEmpty()) {
             selectorView.showNoOrganisationUnitsError();
         }

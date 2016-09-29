@@ -32,6 +32,7 @@ import org.hisp.dhis.client.sdk.android.api.D2;
 import org.hisp.dhis.client.sdk.models.event.Event;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class EventExportService extends ExportService<EventExportResponse> {
@@ -42,7 +43,15 @@ public class EventExportService extends ExportService<EventExportResponse> {
 
         D2.init(getApplicationContext());
         if (D2.isConfigured() && D2.me().isSignedIn().toBlocking().first()) {
-            events = D2.events().list().toBlocking().first();
+            List<Event> storedEvents = D2.events().list().toBlocking().first();
+            Collections.sort(storedEvents, Event.DATE_COMPARATOR);
+
+            if (!storedEvents.isEmpty()) {
+                // Latest event with data values
+                Event latestEvent = D2.events().get(
+                        storedEvents.get(0).getUId()).toBlocking().first();
+                events.add(latestEvent);
+            }
         }
 
         return EventExportResponse.create(events);

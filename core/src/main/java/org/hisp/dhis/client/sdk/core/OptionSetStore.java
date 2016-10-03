@@ -32,6 +32,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.SparseArray;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -142,7 +143,13 @@ public class OptionSetStore {
     }
 
     public List<OptionSet> listBy(String[] projection) {
+
         List<OptionSet> optionSets = new ArrayList<>();
+
+        SparseArray<String> columnIndices = new SparseArray<>();
+        for (int i = 0; i < projection.length; i++) {
+            columnIndices.append(i, projection[i]);
+        }
 
         SQLiteDatabase database = sqLiteOpenHelper.getReadableDatabase();
 
@@ -154,13 +161,32 @@ public class OptionSetStore {
             cursor.moveToFirst();
 
             do {
-                String uid = cursor.getString(0);
-                int version = cursor.getInt(1);
                 OptionSet optionSet = new OptionSet();
-                optionSet.setUid(uid);
-                optionSet.setVersion(version);
-
-                optionSets.add(optionSet);
+                IOException error = null;
+                for (int i = 0; i < cursor.getColumnCount(); i++) {
+                    switch (columnIndices.get(i)) {
+                        case OptionSetColumns.COLUMN_NAME_KEY:
+                            String uid = cursor.getString(i);
+                            optionSet.setUid(uid);
+                            break;
+                        case OptionSetColumns.COLUMN_NAME_VALUE:
+                            String json = cursor.getString(i);
+                            try {
+                                optionSet = objectMapper.readValue(json, OptionSet.class);
+                            } catch (IOException e) {
+                                error = e;
+                                e.printStackTrace();
+                            }
+                            break;
+                        case OptionSetColumns.COLUMN_VERSION:
+                            int version = cursor.getInt(i);
+                            optionSet.setVersion(version);
+                            break;
+                    }
+                }
+                if (error == null) {
+                    optionSets.add(optionSet);
+                }
             } while (cursor.moveToNext());
         }
 

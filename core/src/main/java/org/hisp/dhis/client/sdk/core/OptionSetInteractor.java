@@ -28,20 +28,8 @@
 
 package org.hisp.dhis.client.sdk.core;
 
-public class OptionSetInteractor {
-    private final OptionSetStore optionSetStore;
-    private final OptionSetApi optionSetApi;
+public interface OptionSetInteractor {
+    OptionSetStore store();
 
-    public OptionSetInteractor(OptionSetStore optionSetStore, OptionSetApi optionSetApi) {
-        this.optionSetStore = optionSetStore;
-        this.optionSetApi = optionSetApi;
-    }
-
-    public OptionSetStore store() {
-        return optionSetStore;
-    }
-
-    public OptionSetApi api() {
-        return optionSetApi;
-    }
+    OptionSetApi api();
 }

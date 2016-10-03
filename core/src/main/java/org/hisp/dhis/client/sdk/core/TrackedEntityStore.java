@@ -41,7 +41,7 @@ import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntity;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.hisp.dhis.client.sdk.core.utils.Preconditions.isNull;
+import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
 
 public class TrackedEntityStore {
     private SQLiteOpenHelper sqLiteOpenHelper;

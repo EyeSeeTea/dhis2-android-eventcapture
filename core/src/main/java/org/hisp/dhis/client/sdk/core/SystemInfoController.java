@@ -35,8 +35,8 @@ import org.hisp.dhis.client.sdk.models.SystemInfo;
 import java.util.HashMap;
 import java.util.Map;
 
-import retrofit2.Call;
-import retrofit2.Response;
+import retrofit2.*;
+import retrofit2.Callback;
 
 public class SystemInfoController {
     private final SystemInfoApi systemInfoApi;
@@ -56,15 +56,18 @@ public class SystemInfoController {
                 SystemInfo systemInfo = response.body();
 
                 systemInfoStore.save(systemInfo);
+
                 Log.d(SystemInfoController.class.getSimpleName(),
                         "serverDateTime: " + systemInfo.getServerDateTime().toString());
+
             }
 
             @Override
-            public void onFailure(Call<SystemInfo> call, Throwable throwable) {
-                throwable.printStackTrace();
+            public void onFailure(Call<SystemInfo> call, Throwable t) {
+                t.printStackTrace();
             }
         });
+
     }
 
     private Call<SystemInfo> getSystemInfo() {

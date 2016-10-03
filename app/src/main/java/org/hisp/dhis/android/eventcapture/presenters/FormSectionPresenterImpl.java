@@ -342,7 +342,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
 
                         // fetching prompt from resources
                         Picker picker = new Picker.Builder()
-                                .id(programStage.getUId())
+                                .id(programStage.getUid())
                                 .name(chooseSectionPrompt)
                                 .build();
 
@@ -356,10 +356,10 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
 
                             for (ProgramStageSection section : stageSections) {
                                 formSections.add(new FormSection(
-                                        section.getUId(), section.getDisplayName()));
+                                        section.getUid(), section.getDisplayName()));
                                 picker.addChild(
                                         new Picker.Builder()
-                                                .id(section.getUId())
+                                                .id(section.getUid())
                                                 .name(section.getDisplayName())
                                                 .parent(picker)
                                                 .build());
@@ -401,7 +401,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                         // and only one program stage, we can just retrieve it from the list
                         if (stages == null || stages.isEmpty()) {
                             logger.e(TAG, "Form construction failed. No program " +
-                                    "stages are assigned to given program: " + program.getUId());
+                                    "stages are assigned to given program: " + program.getUid());
                             return null;
                         }
 

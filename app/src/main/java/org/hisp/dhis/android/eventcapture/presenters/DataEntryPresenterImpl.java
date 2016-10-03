@@ -300,7 +300,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
             DataElement dataElement = stageDataElement.getDataElement();
             if (dataElement == null) {
                 throw new RuntimeException("Malformed metadata: Program" +
-                        "StageDataElement " + stageDataElement.getUId() +
+                        "StageDataElement " + stageDataElement.getUid() +
                         " does not have reference to DataElement");
             }
 
@@ -323,7 +323,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
         for (ProgramStageDataElement stageDataElement : stageDataElements) {
             DataElement dataElement = stageDataElement.getDataElement();
             formEntities.add(transformDataElement(
-                    username, event, dataValueMap.get(dataElement.getUId()), stageDataElement));
+                    username, event, dataValueMap.get(dataElement.getUid()), stageDataElement));
         }
 
         return formEntities;
@@ -341,7 +341,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
         if (dataValue == null) {
             dataValue = new TrackedEntityDataValue();
             dataValue.setEvent(event);
-            dataValue.setDataElement(dataElement.getUId());
+            dataValue.setDataElement(dataElement.getUid());
             dataValue.setStoredBy(username);
         }
 
@@ -371,7 +371,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                 }
             }
 
-            FormEntityFilter formEntityFilter = new FormEntityFilter(dataElement.getUId(),
+            FormEntityFilter formEntityFilter = new FormEntityFilter(dataElement.getUid(),
                     getFormEntityLabel(stageDataElement), dataValue);
             formEntityFilter.setPicker(picker);
             formEntityFilter.setOnFormEntityChangeListener(onValueChangedListener);
@@ -381,70 +381,70 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
 
         switch (dataElement.getValueType()) {
             case TEXT: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUId(),
+                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUid(),
                         getFormEntityLabel(stageDataElement), InputType.TEXT, dataValue);
                 formEntityEditText.setValue(dataValue.getValue(), false);
                 formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
                 return formEntityEditText;
             }
             case LONG_TEXT: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUId(),
+                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUid(),
                         getFormEntityLabel(stageDataElement), InputType.LONG_TEXT, dataValue);
                 formEntityEditText.setValue(dataValue.getValue(), false);
                 formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
                 return formEntityEditText;
             }
             case PHONE_NUMBER: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUId(),
+                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUid(),
                         getFormEntityLabel(stageDataElement), InputType.TEXT, dataValue);
                 formEntityEditText.setValue(dataValue.getValue(), false);
                 formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
                 return formEntityEditText;
             }
             case EMAIL: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUId(),
+                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUid(),
                         getFormEntityLabel(stageDataElement), InputType.TEXT, dataValue);
                 formEntityEditText.setValue(dataValue.getValue(), false);
                 formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
                 return formEntityEditText;
             }
             case NUMBER: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUId(),
+                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUid(),
                         getFormEntityLabel(stageDataElement), InputType.NUMBER, dataValue);
                 formEntityEditText.setValue(dataValue.getValue(), false);
                 formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
                 return formEntityEditText;
             }
             case INTEGER: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUId(),
+                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUid(),
                         getFormEntityLabel(stageDataElement), InputType.INTEGER, dataValue);
                 formEntityEditText.setValue(dataValue.getValue(), false);
                 formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
                 return formEntityEditText;
             }
             case INTEGER_POSITIVE: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUId(),
+                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUid(),
                         getFormEntityLabel(stageDataElement), InputType.INTEGER_POSITIVE, dataValue);
                 formEntityEditText.setValue(dataValue.getValue(), false);
                 formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
                 return formEntityEditText;
             }
             case INTEGER_NEGATIVE: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUId(),
+                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUid(),
                         getFormEntityLabel(stageDataElement), InputType.INTEGER_NEGATIVE, dataValue);
                 formEntityEditText.setValue(dataValue.getValue(), false);
                 formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
                 return formEntityEditText;
             }
             case INTEGER_ZERO_OR_POSITIVE: {
-                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUId(),
+                FormEntityEditText formEntityEditText = new FormEntityEditText(dataElement.getUid(),
                         getFormEntityLabel(stageDataElement), InputType.INTEGER_ZERO_OR_POSITIVE, dataValue);
                 formEntityEditText.setValue(dataValue.getValue(), false);
                 formEntityEditText.setOnFormEntityChangeListener(onValueChangedListener);
                 return formEntityEditText;
             }
             case DATE: {
-                FormEntityDate formEntityDate = new FormEntityDate(dataElement.getUId(),
+                FormEntityDate formEntityDate = new FormEntityDate(dataElement.getUid(),
                         getFormEntityLabel(stageDataElement), dataValue);
                 formEntityDate.setValue(dataValue.getValue(), false);
                 formEntityDate.setOnFormEntityChangeListener(onValueChangedListener);
@@ -452,14 +452,14 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
             }
             case BOOLEAN: {
                 FormEntityRadioButtons formEntityRadioButtons = new FormEntityRadioButtons(
-                        dataElement.getUId(), getFormEntityLabel(stageDataElement), dataValue);
+                        dataElement.getUid(), getFormEntityLabel(stageDataElement), dataValue);
                 formEntityRadioButtons.setValue(dataValue.getValue(), false);
                 formEntityRadioButtons.setOnFormEntityChangeListener(onValueChangedListener);
                 return formEntityRadioButtons;
             }
             case TRUE_ONLY: {
                 FormEntityCheckBox formEntityCheckBox = new FormEntityCheckBox(
-                        dataElement.getUId(), getFormEntityLabel(stageDataElement), dataValue);
+                        dataElement.getUid(), getFormEntityLabel(stageDataElement), dataValue);
                 formEntityCheckBox.setValue(dataValue.getValue(), false);
                 formEntityCheckBox.setOnFormEntityChangeListener(onValueChangedListener);
                 return formEntityCheckBox;
@@ -467,7 +467,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
             default:
                 logger.d(TAG, "Unsupported FormEntity type: " + dataElement.getValueType());
 
-                FormEntityText formEntityText = new FormEntityText(dataElement.getUId(),
+                FormEntityText formEntityText = new FormEntityText(dataElement.getUid(),
                         getFormEntityLabel(stageDataElement));
                 formEntityText.setValue("Unsupported value type: " +
                         dataElement.getValueType(), false);
@@ -491,7 +491,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
             switch (ruleEffect.getProgramRuleActionType()) {
                 case HIDEFIELD: {
                     if (ruleEffect.getDataElement() != null) {
-                        String dataElementUid = ruleEffect.getDataElement().getUId();
+                        String dataElementUid = ruleEffect.getDataElement().getUid();
                         FormEntityAction formEntityAction = new FormEntityAction(
                                 dataElementUid, null, FormEntityActionType.HIDE);
                         entityActions.add(formEntityAction);
@@ -500,7 +500,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                 }
                 case ASSIGN: {
                     if (ruleEffect.getDataElement() != null) {
-                        String dataElementUid = ruleEffect.getDataElement().getUId();
+                        String dataElementUid = ruleEffect.getDataElement().getUid();
                         FormEntityAction formEntityAction = new FormEntityAction(
                                 dataElementUid, ruleEffect.getData(), FormEntityActionType.ASSIGN);
                         entityActions.add(formEntityAction);

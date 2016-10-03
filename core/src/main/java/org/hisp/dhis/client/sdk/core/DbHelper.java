@@ -26,9 +26,33 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-include ':app', ':core-rules', ':models', ':ui', ':ui-bindings', ':utils', ':core'
-project(':core-rules').projectDir = new File(settingsDir, '../dhis2-android-sdk/core-rules')
-project(':models').projectDir = new File(settingsDir, '../dhis2-android-sdk/models')
-project(':ui').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui')
-project(':ui-bindings').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui-bindings')
-project(':utils').projectDir = new File(settingsDir, '../dhis2-android-sdk/utils')
+package org.hisp.dhis.client.sdk.core;
+
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+class DbHelper extends SQLiteOpenHelper {
+    private static final String DB_NAME = "DhisDb.db";
+    private static final int DB_VERSION = 1;
+
+    DbHelper(Context context) {
+        super(context, DB_NAME, null, DB_VERSION);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase database) {
+        database.execSQL(ProgramStore.CREATE_TABLE_PROGRAMS);
+        database.execSQL(UserStore.CREATE_TABLE_USERS);
+        database.execSQL(OptionSetStore.CREATE_TABLE_OPTION_SET);
+        database.execSQL(TrackedEntityStore.CREATE_TABLE_TRACKED_ENTITY);
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
+        sqLiteDatabase.execSQL(ProgramStore.DROP_TABLE_PROGRAMS);
+        sqLiteDatabase.execSQL(UserStore.DROP_TABLE_USERS);
+        sqLiteDatabase.execSQL(OptionSetStore.DROP_TABLE_OPTION_SET);
+        sqLiteDatabase.execSQL(TrackedEntityStore.DROP_TABLE_TRACKED_ENTITY);
+    }
+}

@@ -26,9 +26,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-include ':app', ':core-rules', ':models', ':ui', ':ui-bindings', ':utils', ':core'
-project(':core-rules').projectDir = new File(settingsDir, '../dhis2-android-sdk/core-rules')
-project(':models').projectDir = new File(settingsDir, '../dhis2-android-sdk/models')
-project(':ui').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui')
-project(':ui-bindings').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui-bindings')
-project(':utils').projectDir = new File(settingsDir, '../dhis2-android-sdk/utils')
+package org.hisp.dhis.client.sdk.core;
+
+import org.hisp.dhis.client.sdk.models.common.Payload;
+import org.hisp.dhis.client.sdk.models.option.OptionSet;
+
+import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.QueryMap;
+
+public interface OptionSetApi {
+    @GET("optionSets")
+    Call<Payload<OptionSet>> list(@QueryMap Map<String, String> queryMap);
+}

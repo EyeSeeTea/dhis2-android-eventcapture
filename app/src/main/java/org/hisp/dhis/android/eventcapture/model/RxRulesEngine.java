@@ -113,8 +113,8 @@ public class RxRulesEngine {
         }
 
         // first, we need to find out this event in map and replace it
-        if (eventsMap.containsKey(currentEvent.getUId())) {
-            eventsMap.remove(currentEvent.getUId());
+        if (eventsMap.containsKey(currentEvent.getUid())) {
+            eventsMap.remove(currentEvent.getUid());
         }
 
         if (!subscription.isUnsubscribed()) {
@@ -124,14 +124,14 @@ public class RxRulesEngine {
 
         final String username = currentUserInteractor.userCredentials()
                 .toBlocking().first().getUsername();
-        subscription.add(eventInteractor.get(currentEvent.getUId())
+        subscription.add(eventInteractor.get(currentEvent.getUid())
                 .switchMap(new Func1<Event, Observable<List<RuleEffect>>>() {
                     @Override
                     public Observable<List<RuleEffect>> call(Event event) {
-                        logger.d(TAG, "Reloaded event: " + currentEvent.getUId());
+                        logger.d(TAG, "Reloaded event: " + currentEvent.getUid());
 
                         currentEvent = event;
-                        eventsMap.put(event.getUId(), event);
+                        eventsMap.put(event.getUid(), event);
 
                         logger.d(TAG, "calculating rule effects");
                         // final Observable<List<RuleEffect>> ruleEffects = Observable.just();
@@ -245,12 +245,12 @@ public class RxRulesEngine {
                                     ruleEffect.getDataElement() != null) {
 
                                 TrackedEntityDataValue dataValue = dataValueMap.get(
-                                        ruleEffect.getDataElement().getUId());
+                                        ruleEffect.getDataElement().getUid());
 
                                 // it can happen that event does not contain data value for yet
                                 // for given ruleEffect, it means we need to create one
                                 if (dataValue == null) {
-                                    String dataElement = ruleEffect.getDataElement().getUId();
+                                    String dataElement = ruleEffect.getDataElement().getUid();
 
                                     dataValue = new TrackedEntityDataValue();
                                     dataValue.setDataElement(dataElement);

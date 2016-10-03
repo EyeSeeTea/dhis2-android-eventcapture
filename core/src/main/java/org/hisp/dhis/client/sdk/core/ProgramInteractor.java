@@ -26,9 +26,30 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-include ':app', ':core-rules', ':models', ':ui', ':ui-bindings', ':utils', ':core'
-project(':core-rules').projectDir = new File(settingsDir, '../dhis2-android-sdk/core-rules')
-project(':models').projectDir = new File(settingsDir, '../dhis2-android-sdk/models')
-project(':ui').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui')
-project(':ui-bindings').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui-bindings')
-project(':utils').projectDir = new File(settingsDir, '../dhis2-android-sdk/utils')
+package org.hisp.dhis.client.sdk.core;
+
+public class ProgramInteractor {
+    private final ProgramStore programStore;
+    private final ProgramsApi programsApi;
+    private final MetadataApi metadataApi;
+
+    public ProgramInteractor(ProgramsApi programsApi,
+                             ProgramStore programStore,
+                             MetadataApi metadataApi) {
+        this.programsApi = programsApi;
+        this.programStore = programStore;
+        this.metadataApi = metadataApi;
+    }
+
+    public ProgramStore store() {
+        return programStore;
+    }
+
+    public ProgramsApi api() {
+        return programsApi;
+    }
+
+    public MetadataApi metadataApi() {
+        return metadataApi;
+    }
+}

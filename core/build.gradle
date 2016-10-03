@@ -26,9 +26,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-include ':app', ':core-rules', ':models', ':ui', ':ui-bindings', ':utils', ':core'
-project(':core-rules').projectDir = new File(settingsDir, '../dhis2-android-sdk/core-rules')
-project(':models').projectDir = new File(settingsDir, '../dhis2-android-sdk/models')
-project(':ui').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui')
-project(':ui-bindings').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui-bindings')
-project(':utils').projectDir = new File(settingsDir, '../dhis2-android-sdk/utils')
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion "24.0.2"
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 24
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile project(":models")
+
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+
+    compile 'com.android.support:appcompat-v7:24.2.1'
+    testCompile 'junit:junit:4.12'
+
+    // Android
+    compile 'com.android.support:appcompat-v7:24.2.1'
+
+    // Square
+    compile 'com.squareup.retrofit2:retrofit:2.1.0'
+    compile 'com.squareup.retrofit2:converter-jackson:2.1.0'
+    compile 'com.squareup.okhttp3:okhttp:3.4.1'
+    compile 'com.squareup.okhttp3:logging-interceptor:3.4.1'
+}

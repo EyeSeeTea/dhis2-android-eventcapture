@@ -476,7 +476,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
 
             reportEntities.add(
                     new ReportEntity(
-                            event.getUId(),
+                            event.getUid(),
                             status,
                             dataElementToValueMap));
         }
@@ -499,7 +499,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                     dataElementName = dataElement.getDisplayName();
                 }
                 boolean defaultViewSetting = programStageDataElement.isDisplayInReports();
-                defaultFilters.add(new ReportEntityFilter(dataElement.getUId(), dataElementName, defaultViewSetting));
+                defaultFilters.add(new ReportEntityFilter(dataElement.getUid(), dataElementName, defaultViewSetting));
             }
         }
         return defaultFilters;
@@ -543,7 +543,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
             // creating organisation unit picker items
             OrganisationUnit organisationUnit = organisationUnitMap.get(unitKey);
             Picker organisationUnitPicker = new Picker.Builder()
-                    .id(organisationUnit.getUId())
+                    .id(organisationUnit.getUid())
                     .name(organisationUnit.getDisplayName())
                     .hint(chooseProgram)
                     .parent(rootPicker)
@@ -551,12 +551,12 @@ public class SelectorPresenterImpl implements SelectorPresenter {
 
             if (organisationUnit.getPrograms() != null && !organisationUnit.getPrograms().isEmpty()) {
                 for (Program program : organisationUnit.getPrograms()) {
-                    Program assignedProgram = assignedProgramsMap.get(program.getUId());
+                    Program assignedProgram = assignedProgramsMap.get(program.getUid());
 
                     if (assignedProgram != null && ProgramType.WITHOUT_REGISTRATION
                             .equals(assignedProgram.getProgramType())) {
                         Picker programPicker = new Picker.Builder()
-                                .id(assignedProgram.getUId())
+                                .id(assignedProgram.getUid())
                                 .name(assignedProgram.getDisplayName())
                                 .parent(organisationUnitPicker)
                                 .build();

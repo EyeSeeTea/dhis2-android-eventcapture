@@ -26,9 +26,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-include ':app', ':core-rules', ':models', ':ui', ':ui-bindings', ':utils', ':core'
-project(':core-rules').projectDir = new File(settingsDir, '../dhis2-android-sdk/core-rules')
-project(':models').projectDir = new File(settingsDir, '../dhis2-android-sdk/models')
-project(':ui').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui')
-project(':ui-bindings').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui-bindings')
-project(':utils').projectDir = new File(settingsDir, '../dhis2-android-sdk/utils')
+package org.hisp.dhis.client.sdk.core;
+
+interface DbContract {
+
+    interface KeyValueColumns {
+        String COLUMN_NAME_KEY = "key";
+        String COLUMN_NAME_VALUE = "value";
+    }
+
+    interface VersionColumn {
+        String COLUMN_VERSION = "version";
+    }
+
+    interface LastUpdatedColumn {
+        String COLUMN_LAST_UPDATED = "lastUpdated";
+    }
+}

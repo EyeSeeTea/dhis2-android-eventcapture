@@ -49,7 +49,7 @@ public class EventExportService extends ExportService<EventExportResponse> {
             if (!storedEvents.isEmpty()) {
                 // Latest event with data values
                 Event latestEvent = D2.events().get(
-                        storedEvents.get(0).getUId()).toBlocking().first();
+                        storedEvents.get(0).getUid()).toBlocking().first();
                 events.add(latestEvent);
             }
         }

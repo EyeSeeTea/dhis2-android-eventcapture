@@ -309,8 +309,8 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
 
     @Override
     public void navigateToFormSectionActivity(Event event) {
-        logger.d(TAG, String.format("Event with uid=%s is created", event.getUId()));
-        FormSectionActivity.navigateToNewEvent(getActivity(), event.getUId());
+        logger.d(TAG, String.format("Event with uid=%s is created", event.getUid()));
+        FormSectionActivity.navigateToNewEvent(getActivity(), event.getUid());
     }
 
     @Override

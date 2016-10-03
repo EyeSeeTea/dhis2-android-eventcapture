@@ -26,9 +26,53 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-include ':app', ':core-rules', ':models', ':ui', ':ui-bindings', ':utils', ':core'
-project(':core-rules').projectDir = new File(settingsDir, '../dhis2-android-sdk/core-rules')
-project(':models').projectDir = new File(settingsDir, '../dhis2-android-sdk/models')
-project(':ui').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui')
-project(':ui-bindings').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui-bindings')
-project(':utils').projectDir = new File(settingsDir, '../dhis2-android-sdk/utils')
+package org.hisp.dhis.client.sdk.core;
+
+import org.hisp.dhis.client.sdk.models.user.User;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+public class UserInteractor {
+    private final Executor callbackExecutor;
+    private final UserStore userStore;
+    private final UsersApi usersApi;
+    private final UserPreferences userPreferences;
+
+    public UserInteractor(Executor callbackExecutor, UsersApi usersApi,
+                          UserStore userStore, UserPreferences userPreferences) {
+        this.callbackExecutor = callbackExecutor;
+        this.userStore = userStore;
+        this.usersApi = usersApi;
+        this.userPreferences = userPreferences;
+    }
+
+    public UserStore store() {
+        return userStore;
+    }
+
+    public UsersApi api() {
+        return usersApi;
+    }
+
+    public String username() {
+        return userPreferences.getUsername();
+    }
+
+    public String password() {
+        return userPreferences.getPassword();
+    }
+
+    public Task<User> logIn(String username, String password) {
+        return new UserLoginTask(Executors.newCachedThreadPool(),
+                callbackExecutor, username, password, usersApi, userStore, userPreferences);
+    }
+
+    public Object logOut() {
+        return null;
+    }
+
+    public boolean isLoggedIn() {
+        return userPreferences.isUserConfirmed();
+    }
+}

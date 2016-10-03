@@ -26,9 +26,42 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-include ':app', ':core-rules', ':models', ':ui', ':ui-bindings', ':utils', ':core'
-project(':core-rules').projectDir = new File(settingsDir, '../dhis2-android-sdk/core-rules')
-project(':models').projectDir = new File(settingsDir, '../dhis2-android-sdk/models')
-project(':ui').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui')
-project(':ui-bindings').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui-bindings')
-project(':utils').projectDir = new File(settingsDir, '../dhis2-android-sdk/utils')
+package org.hisp.dhis.client.sdk.core;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import static org.hisp.dhis.client.sdk.core.utils.Preconditions.isNull;
+
+class ServerUrlPreferences {
+    private static final String SERVER_URL_PREFERENCES = "preferences:serverUrlPreferences";
+    private static final String SERVER_URL_KEY = "key:serverUrl";
+
+    private final SharedPreferences mPrefs;
+
+    public ServerUrlPreferences(Context context) {
+        mPrefs = context.getSharedPreferences(SERVER_URL_PREFERENCES, Context.MODE_PRIVATE);
+    }
+
+    public boolean save(String serverUrl) {
+        isNull(serverUrl, "Server URL must not be null");
+
+        return putString(SERVER_URL_KEY, serverUrl);
+    }
+
+    public String get() {
+        return getString(SERVER_URL_KEY);
+    }
+
+    public boolean clear() {
+        return mPrefs.edit().clear().commit();
+    }
+
+    private boolean putString(String key, String value) {
+        return mPrefs.edit().putString(key, value).commit();
+    }
+
+    private String getString(String key) {
+        return mPrefs.getString(key, null);
+    }
+}

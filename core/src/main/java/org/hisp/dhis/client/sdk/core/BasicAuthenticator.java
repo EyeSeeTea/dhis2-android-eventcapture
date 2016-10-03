@@ -26,9 +26,52 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-include ':app', ':core-rules', ':models', ':ui', ':ui-bindings', ':utils', ':core'
-project(':core-rules').projectDir = new File(settingsDir, '../dhis2-android-sdk/core-rules')
-project(':models').projectDir = new File(settingsDir, '../dhis2-android-sdk/models')
-project(':ui').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui')
-project(':ui-bindings').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui-bindings')
-project(':utils').projectDir = new File(settingsDir, '../dhis2-android-sdk/utils')
+package org.hisp.dhis.client.sdk.core;
+
+import java.io.IOException;
+import java.net.HttpURLConnection;
+
+import okhttp3.Interceptor;
+import okhttp3.Request;
+import okhttp3.Response;
+
+import static android.text.TextUtils.isEmpty;
+import static okhttp3.Credentials.basic;
+
+class BasicAuthenticator implements Interceptor {
+    private final UserPreferences mUserPreferences;
+
+    BasicAuthenticator(UserPreferences preferences) {
+        mUserPreferences = preferences;
+    }
+
+    @Override
+    public Response intercept(Chain chain) throws IOException {
+        String username = mUserPreferences.getUsername();
+        String password = mUserPreferences.getPassword();
+
+        if (isEmpty(username) || isEmpty(password)) {
+            return chain.proceed(chain.request());
+        }
+
+        String base64Credentials = basic(username, password);
+        Request request = chain.request().newBuilder()
+                .addHeader("Authorization", base64Credentials)
+                .build();
+
+        Response response = chain.proceed(request);
+        if (mUserPreferences.isUserConfirmed()) {
+            if (response.code() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                mUserPreferences.invalidateUser();
+            }
+        } else {
+            if (response.isSuccessful()) {
+                mUserPreferences.confirmUser();
+            } else {
+                mUserPreferences.clear();
+            }
+        }
+
+        return response;
+    }
+}

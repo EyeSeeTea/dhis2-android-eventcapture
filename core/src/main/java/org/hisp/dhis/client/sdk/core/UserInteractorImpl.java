@@ -55,4 +55,9 @@ public class UserInteractorImpl implements UserInteractor{
         return userPreferences.isUserConfirmed();
     }
 
+    @Override
+    public void sync() {
+        //TODO implement
+    }
+
 }

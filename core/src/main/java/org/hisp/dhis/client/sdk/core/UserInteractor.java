@@ -33,46 +33,18 @@ import org.hisp.dhis.client.sdk.models.user.User;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-public class UserInteractor {
-    private final Executor callbackExecutor;
-    private final UserStore userStore;
-    private final UsersApi usersApi;
-    private final UserPreferences userPreferences;
+public interface UserInteractor {
+    UserStore store();
 
-    public UserInteractor(Executor callbackExecutor, UsersApi usersApi,
-                          UserStore userStore, UserPreferences userPreferences) {
-        this.callbackExecutor = callbackExecutor;
-        this.userStore = userStore;
-        this.usersApi = usersApi;
-        this.userPreferences = userPreferences;
-    }
+    UsersApi api();
 
-    public UserStore store() {
-        return userStore;
-    }
+    String username();
 
-    public UsersApi api() {
-        return usersApi;
-    }
+    String password();
 
-    public String username() {
-        return userPreferences.getUsername();
-    }
+    Task<User> logIn(String username, String password);
 
-    public String password() {
-        return userPreferences.getPassword();
-    }
+    Object logOut();
 
-    public Task<User> logIn(String username, String password) {
-        return new UserLoginTask(Executors.newCachedThreadPool(),
-                callbackExecutor, username, password, usersApi, userStore, userPreferences);
-    }
-
-    public Object logOut() {
-        return null;
-    }
-
-    public boolean isLoggedIn() {
-        return userPreferences.isUserConfirmed();
-    }
+    boolean isLoggedIn();
 }

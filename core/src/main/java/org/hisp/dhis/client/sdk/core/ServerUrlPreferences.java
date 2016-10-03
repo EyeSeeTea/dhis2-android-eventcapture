@@ -31,7 +31,8 @@ package org.hisp.dhis.client.sdk.core;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import static org.hisp.dhis.client.sdk.core.utils.Preconditions.isNull;
+import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
+
 
 class ServerUrlPreferences {
     private static final String SERVER_URL_PREFERENCES = "preferences:serverUrlPreferences";

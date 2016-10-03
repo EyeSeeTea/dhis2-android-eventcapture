@@ -1,6 +1,6 @@
 package org.hisp.dhis.client.sdk.core;
 
-import org.hisp.dhis.client.sdk.core.core.ProgramStore.ProgramColumns;
+import org.hisp.dhis.client.sdk.core.ProgramStore.ProgramColumns;
 import org.hisp.dhis.client.sdk.models.common.Payload;
 import org.hisp.dhis.client.sdk.models.option.OptionSet;
 import org.hisp.dhis.client.sdk.models.program.Program;
@@ -9,7 +9,7 @@ import org.hisp.dhis.client.sdk.models.program.ProgramStageDataElement;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntity;
 import org.hisp.dhis.client.sdk.models.user.User;
 import org.hisp.dhis.client.sdk.models.user.UserRole;
-import org.hisp.dhis.client.sdk.core.utils.CollectionUtils;
+import org.hisp.dhis.client.sdk.utils.CollectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,8 +22,8 @@ import java.util.Map;
 
 import retrofit2.Call;
 
-import static org.hisp.dhis.client.sdk.core.utils.ModelUtils.toMap;
-import static org.hisp.dhis.client.sdk.core.utils.Preconditions.isNull;
+import static org.hisp.dhis.client.sdk.utils.ModelUtils.toMap;
+import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
 
 public class MetadataTask {
     private final ProgramInteractor programInteractor;

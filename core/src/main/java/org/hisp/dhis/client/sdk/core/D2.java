@@ -171,7 +171,7 @@ public class D2 {
             ProgramStore programStore = new ProgramStore(
                     instance().dbHelper, instance().objectMapper);
 
-            instance().programInteractor = new ProgramInteractor(
+            instance().programInteractor = new ProgramInteractorImpl(
                     programsApi, programStore, metadataApi);
         }
 
@@ -183,7 +183,7 @@ public class D2 {
             UsersApi usersApi = instance().retrofit.create(UsersApi.class);
             UserStore userStore = new UserStore(instance().dbHelper, instance().objectMapper);
 
-            instance().userInteractor = new UserInteractor(null, usersApi, userStore, null);
+            instance().userInteractor = new UserInteractorImpl(null, usersApi, userStore, null);
         }
         return instance().userInteractor;
     }
@@ -195,7 +195,7 @@ public class D2 {
             OptionSetApi optionSetApi =
                     instance().retrofit.create(OptionSetApi.class);
             instance().optionSetInteractor =
-                    new OptionSetInteractor(optionSetStore, optionSetApi);
+                    new OptionSetInteractorImpl(optionSetStore, optionSetApi);
         }
 
         return instance().optionSetInteractor;
@@ -207,7 +207,7 @@ public class D2 {
             TrackedEntityStore trackedEntityStore =
                     new TrackedEntityStore(instance().dbHelper, instance().objectMapper);
             instance().trackedEntityInteractor =
-                    new TrackedEntityInteractor(trackedEntityStore, trackedEntityApi);
+                    new TrackedEntityInteractorImpl(trackedEntityStore, trackedEntityApi);
         }
 
         return instance().trackedEntityInteractor;

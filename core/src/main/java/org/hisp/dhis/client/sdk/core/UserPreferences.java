@@ -32,7 +32,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import static android.text.TextUtils.isEmpty;
-import static org.hisp.dhis.client.sdk.core.utils.Preconditions.isNull;
+import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
 
 class UserPreferences {
     private static final String USER_CREDENTIALS = "preferences:userCredentials";

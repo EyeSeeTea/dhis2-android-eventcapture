@@ -1,6 +1,6 @@
 package org.hisp.dhis.client.sdk.core;
 
-public class OptionSetInteractorImpl {
+public class OptionSetInteractorImpl implements OptionSetInteractor {
     private final OptionSetStore optionSetStore;
     private final OptionSetApi optionSetApi;
 
@@ -9,10 +9,13 @@ public class OptionSetInteractorImpl {
         this.optionSetApi = optionSetApi;
     }
 
+
+    @Override
     public OptionSetStore store() {
         return optionSetStore;
     }
 
+    @Override
     public OptionSetApi api() {
         return optionSetApi;
     }

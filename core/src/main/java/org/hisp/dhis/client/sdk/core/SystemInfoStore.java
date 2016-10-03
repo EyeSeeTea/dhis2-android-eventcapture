@@ -38,7 +38,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static org.hisp.dhis.client.sdk.core.utils.Preconditions.isNull;
+import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
 
 public class SystemInfoStore {
     private static final String PREFERENCES = "preferences:systemInfo";

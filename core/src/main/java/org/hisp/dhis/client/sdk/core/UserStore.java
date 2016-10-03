@@ -29,19 +29,23 @@
 package org.hisp.dhis.client.sdk.core;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.models.user.User;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import static org.hisp.dhis.client.sdk.core.utils.Preconditions.isNull;
+import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
 
 public class UserStore {
     private final SQLiteOpenHelper sqLiteOpenHelper;
@@ -104,5 +108,38 @@ public class UserStore {
             contentValuesList.add(contentValues);
         }
         return contentValuesList;
+    }
+
+    /**
+     *
+     * @return the only logged in user
+     */
+    public User list() {
+
+        List<User> users = new ArrayList<>();
+
+        SQLiteDatabase database = sqLiteOpenHelper.getWritableDatabase();
+
+        Cursor cursor = database.query(UserColumns.TABLE_NAME, null,
+                null, null, null, null, null);
+
+        try {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+
+                do {
+                    String json = cursor.getString(1);
+                    User user = objectMapper.readValue(json, User.class);
+
+                    users.add(user);
+                } while (cursor.moveToNext());
+            }
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        } finally {
+            cursor.close();
+        }
+
+        return users.get(0);
     }
 }

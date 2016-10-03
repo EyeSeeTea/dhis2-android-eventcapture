@@ -28,28 +28,8 @@
 
 package org.hisp.dhis.client.sdk.core;
 
-public class ProgramInteractor {
-    private final ProgramStore programStore;
-    private final ProgramsApi programsApi;
-    private final MetadataApi metadataApi;
+public interface ProgramInteractor {
+    ProgramStore store();
 
-    public ProgramInteractor(ProgramsApi programsApi,
-                             ProgramStore programStore,
-                             MetadataApi metadataApi) {
-        this.programsApi = programsApi;
-        this.programStore = programStore;
-        this.metadataApi = metadataApi;
-    }
-
-    public ProgramStore store() {
-        return programStore;
-    }
-
-    public ProgramsApi api() {
-        return programsApi;
-    }
-
-    public MetadataApi metadataApi() {
-        return metadataApi;
-    }
+    ProgramsApi api();
 }

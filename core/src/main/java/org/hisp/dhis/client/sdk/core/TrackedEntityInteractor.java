@@ -28,20 +28,8 @@
 
 package org.hisp.dhis.client.sdk.core;
 
-public class TrackedEntityInteractor {
-    private final TrackedEntityStore trackedEntityStore;
-    private final TrackedEntityApi trackedEntityApi;
+public interface TrackedEntityInteractor {
+    TrackedEntityStore store();
 
-    TrackedEntityInteractor(TrackedEntityStore trackedEntityStore, TrackedEntityApi trackedEntityApi) {
-        this.trackedEntityStore = trackedEntityStore;
-        this.trackedEntityApi = trackedEntityApi;
-    }
-
-    public TrackedEntityStore store() {
-        return trackedEntityStore;
-    }
-
-    public TrackedEntityApi api() {
-        return trackedEntityApi;
-    }
+    TrackedEntityApi api();
 }

@@ -30,14 +30,9 @@ package org.hisp.dhis.android.eventcapture.presenters;
 
 import org.hisp.dhis.android.eventcapture.model.SyncWrapper;
 import org.hisp.dhis.android.eventcapture.views.SelectorView;
-import org.hisp.dhis.client.sdk.android.event.EventInteractor;
-import org.hisp.dhis.client.sdk.android.organisationunit.UserOrganisationUnitInteractor;
-import org.hisp.dhis.client.sdk.android.program.ProgramStageDataElementInteractor;
-import org.hisp.dhis.client.sdk.android.program.ProgramStageInteractor;
-import org.hisp.dhis.client.sdk.android.program.UserProgramInteractor;
-import org.hisp.dhis.client.sdk.core.common.network.ApiException;
-import org.hisp.dhis.client.sdk.core.common.utils.ModelUtils;
-import org.hisp.dhis.client.sdk.models.common.state.State;
+import org.hisp.dhis.client.sdk.core.ApiException;
+import org.hisp.dhis.client.sdk.core.EventInteractor;
+import org.hisp.dhis.client.sdk.core.ProgramInteractor;
 import org.hisp.dhis.client.sdk.models.dataelement.DataElement;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.organisationunit.OrganisationUnit;
@@ -80,9 +75,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     private static final String TAG = SelectorPresenterImpl.class.getSimpleName();
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private final UserOrganisationUnitInteractor userOrganisationUnitInteractor;
-    private final UserProgramInteractor userProgramInteractor;
-    private final ProgramStageInteractor programStageInteractor;
-    private final ProgramStageDataElementInteractor programStageDataElementInteractor;
+    private final ProgramInteractor userProgramInteractor;
     private final EventInteractor eventInteractor;
     private final SessionPreferences sessionPreferences;
     private final SyncDateWrapper syncDateWrapper;
@@ -96,9 +89,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     private ArrayList reportEntityDataElementFilter;
 
     public SelectorPresenterImpl(UserOrganisationUnitInteractor interactor,
-                                 UserProgramInteractor userProgramInteractor,
-                                 ProgramStageInteractor programStageInteractor,
-                                 ProgramStageDataElementInteractor stageDataElementInteractor,
+                                 ProgramInteractor userProgramInteractor,
                                  EventInteractor eventInteractor,
                                  SessionPreferences sessionPreferences,
                                  SyncDateWrapper syncDateWrapper,
@@ -107,8 +98,6 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                                  Logger logger) {
         this.userOrganisationUnitInteractor = interactor;
         this.userProgramInteractor = userProgramInteractor;
-        this.programStageInteractor = programStageInteractor;
-        this.programStageDataElementInteractor = stageDataElementInteractor;
         this.eventInteractor = eventInteractor;
         this.sessionPreferences = sessionPreferences;
         this.syncDateWrapper = syncDateWrapper;

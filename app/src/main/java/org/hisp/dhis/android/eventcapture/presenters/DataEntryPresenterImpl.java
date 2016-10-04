@@ -340,7 +340,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
         // create TrackedEntityDataValue upfront
         if (dataValue == null) {
             dataValue = new TrackedEntityDataValue();
-            dataValue.setEvent(event);
+            dataValue.setEventUid(event.getUid());
             dataValue.setDataElement(dataElement.getUid());
             dataValue.setStoredBy(username);
         }

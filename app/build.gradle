@@ -119,7 +119,8 @@ dependencies {
     // Local
     compile project(":core-rules")
     compile project(":ui-bindings")
-
+    compile project(path: ':core')
+    
     // Dependencies for testing
     testCompile "junit:junit:${libs.jUnitVersion}"
 
@@ -146,8 +147,6 @@ dependencies {
     // Multidex:
     compile "com.android.support:multidex:${libs.multidex}"
 
-    // Stetho
-    // debugCompile "com.facebook.stetho:stetho:${libs.stethoVeirsion}"
-    // debugCompile "com.facebook.stetho:stetho-okhttp3:${libs.stethoVersion}"
-    compile project(path: ':core')
-}
+// Stetho
+// debugCompile "com.facebook.stetho:stetho:${libs.stethoVeirsion}"
+// debugCompile "com.facebook.stetho:stetho-okhttp3:${libs.stethoVersion}"

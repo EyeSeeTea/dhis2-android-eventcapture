@@ -268,7 +268,7 @@ public class RxRulesEngine {
                                     dataValue = new TrackedEntityDataValue();
                                     dataValue.setDataElement(dataElement);
                                     dataValue.setStoredBy(username);
-                                    dataValue.setEvent(event);
+                                    dataValue.setEventUid(event.getUid());
 
                                     dataValueMap.put(dataElement, dataValue);
                                 }

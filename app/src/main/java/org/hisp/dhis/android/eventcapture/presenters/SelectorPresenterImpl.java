@@ -75,7 +75,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     private static final String TAG = SelectorPresenterImpl.class.getSimpleName();
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private final UserOrganisationUnitInteractor userOrganisationUnitInteractor;
-    private final ProgramInteractor userProgramInteractor;
+    private final ProgramInteractor programInteractor;
     private final EventInteractor eventInteractor;
     private final SessionPreferences sessionPreferences;
     private final SyncDateWrapper syncDateWrapper;
@@ -89,7 +89,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     private ArrayList reportEntityDataElementFilter;
 
     public SelectorPresenterImpl(UserOrganisationUnitInteractor interactor,
-                                 ProgramInteractor userProgramInteractor,
+                                 ProgramInteractor programInteractor,
                                  EventInteractor eventInteractor,
                                  SessionPreferences sessionPreferences,
                                  SyncDateWrapper syncDateWrapper,
@@ -97,7 +97,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                                  ApiExceptionHandler apiExceptionHandler,
                                  Logger logger) {
         this.userOrganisationUnitInteractor = interactor;
-        this.userProgramInteractor = userProgramInteractor;
+        this.programInteractor = programInteractor;
         this.eventInteractor = eventInteractor;
         this.sessionPreferences = sessionPreferences;
         this.syncDateWrapper = syncDateWrapper;
@@ -217,7 +217,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         logger.d(TAG, "listPickers()");
         subscription.add(Observable.zip(
                 userOrganisationUnitInteractor.list(),
-                userProgramInteractor.list(),
+                programInteractor.store().list(),
                 new Func2<List<OrganisationUnit>, List<Program>, Picker>() {
                     @Override
                     public Picker call(List<OrganisationUnit> units, List<Program> programs) {
@@ -244,24 +244,31 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     @Override
     public void listEvents(String organisationUnitId, final String programId) {
         final OrganisationUnit orgUnit = new OrganisationUnit();
-        final Program program = new Program();
 
-        orgUnit.setUId(organisationUnitId);
-        program.setUId(programId);
+        orgUnit.setUid(organisationUnitId);
 
-        subscription.add(programStageInteractor.list(program)
-                .switchMap(new Func1<List<ProgramStage>, Observable<List<ReportEntity>>>() {
+        subscription.add(programInteractor.store().get(programId)
+                .switchMap(new Func1<Program, Observable<List<ReportEntity>>>() {
                     @Override
-                    public Observable<List<ReportEntity>> call(List<ProgramStage> stages) {
-                        if (stages == null || stages.isEmpty()) {
+                    public Observable<List<ReportEntity>> call(Program program) {
+                        if (program == null) {
                             throw new IllegalArgumentException(
-                                    "Program should contain at least one program stage");
+                                    "Program id doesn't exist");
+                        }
+                        ProgramStage programStage = null;
+                        if(ProgramType.WITHOUT_REGISTRATION.equals(program.getProgramType())) {
+                            programStage = program.getProgramStages().get(0);
                         }
 
-                        Observable<List<ProgramStageDataElement>> stageDataElements =
-                                programStageDataElementInteractor.list(stages.get(0));
+                        if(programStage == null) {
+                            throw new IllegalArgumentException("No stages found for program");
+                        }
 
-                        return Observable.zip(stageDataElements, eventInteractor.list(orgUnit, program),
+
+                        Observable stageElementsObservable = Observable.just(programStage.getProgramStageDataElements());
+
+
+                        return Observable.zip(stageElementsObservable, Observable.just(eventInteractor.store().list(orgUnit, program)),
                                 new Func2<List<ProgramStageDataElement>, List<Event>, List<ReportEntity>>() {
 
                                     @Override

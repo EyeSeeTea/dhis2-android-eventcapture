@@ -146,6 +146,7 @@ dependencies {
 
     // Multidex:
     compile "com.android.support:multidex:${libs.multidex}"
+    compile project(path: ':models')
 }
 
 // Stetho

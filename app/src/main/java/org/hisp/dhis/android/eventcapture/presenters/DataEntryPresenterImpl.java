@@ -2,23 +2,23 @@ package org.hisp.dhis.android.eventcapture.presenters;
 
 import org.hisp.dhis.android.eventcapture.model.RxRulesEngine;
 import org.hisp.dhis.android.eventcapture.views.DataEntryView;
-import org.hisp.dhis.client.sdk.android.event.EventInteractor;
-import org.hisp.dhis.client.sdk.android.optionset.OptionSetInteractor;
-import org.hisp.dhis.client.sdk.android.program.ProgramStageDataElementInteractor;
-import org.hisp.dhis.client.sdk.android.program.ProgramStageInteractor;
-import org.hisp.dhis.client.sdk.android.program.ProgramStageSectionInteractor;
-import org.hisp.dhis.client.sdk.android.trackedentity.TrackedEntityDataValueInteractor;
-import org.hisp.dhis.client.sdk.android.user.CurrentUserInteractor;
+import org.hisp.dhis.client.sdk.core.EventInteractor;
+import org.hisp.dhis.client.sdk.core.OptionSetInteractor;
+import org.hisp.dhis.client.sdk.core.ProgramInteractor;
+import org.hisp.dhis.client.sdk.core.TrackedEntityDataValueInteractor;
+import org.hisp.dhis.client.sdk.core.UserInteractor;
 import org.hisp.dhis.client.sdk.models.dataelement.DataElement;
 import org.hisp.dhis.client.sdk.models.event.Event;
-import org.hisp.dhis.client.sdk.models.optionset.Option;
-import org.hisp.dhis.client.sdk.models.optionset.OptionSet;
+import org.hisp.dhis.client.sdk.models.option.Option;
+import org.hisp.dhis.client.sdk.models.option.OptionSet;
+import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.models.program.ProgramStage;
 import org.hisp.dhis.client.sdk.models.program.ProgramStageDataElement;
 import org.hisp.dhis.client.sdk.models.program.ProgramStageSection;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityDataValue;
 import org.hisp.dhis.client.sdk.rules.RuleEffect;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.RxOnValueChangedListener;
+import org.hisp.dhis.client.sdk.ui.bindings.commons.RxUtils;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.FormEntity;
 import org.hisp.dhis.client.sdk.ui.models.FormEntityAction;
@@ -58,13 +58,10 @@ import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
 public class DataEntryPresenterImpl implements DataEntryPresenter {
     private static final String TAG = DataEntryPresenterImpl.class.getSimpleName();
 
-    private final CurrentUserInteractor currentUserInteractor;
+    private final UserInteractor currentUserInteractor;
 
-    private final ProgramStageInteractor stageInteractor;
-    private final ProgramStageSectionInteractor sectionInteractor;
-    private final ProgramStageDataElementInteractor dataElementInteractor;
     private final OptionSetInteractor optionSetInteractor;
-
+    private final ProgramInteractor programInteractor;
     private final EventInteractor eventInteractor;
     private final TrackedEntityDataValueInteractor dataValueInteractor;
 
@@ -77,19 +74,15 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
     private CompositeSubscription subscription;
 
 
-    public DataEntryPresenterImpl(CurrentUserInteractor currentUserInteractor,
-                                  ProgramStageInteractor stageInteractor,
-                                  ProgramStageSectionInteractor sectionInteractor,
-                                  ProgramStageDataElementInteractor dataElementInteractor,
+    public DataEntryPresenterImpl(UserInteractor currentUserInteractor,
+                                  ProgramInteractor programInteractor,
                                   OptionSetInteractor optionSetInteractor,
                                   EventInteractor eventInteractor,
                                   TrackedEntityDataValueInteractor dataValueInteractor,
                                   RxRulesEngine rxRulesEngine, Logger logger) {
         this.currentUserInteractor = currentUserInteractor;
-        this.stageInteractor = stageInteractor;
-        this.sectionInteractor = sectionInteractor;
-        this.dataElementInteractor = dataElementInteractor;
         this.optionSetInteractor = optionSetInteractor;
+        this.programInteractor = programInteractor;
 
         this.eventInteractor = eventInteractor;
         this.dataValueInteractor = dataValueInteractor;
@@ -116,7 +109,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
     }
 
     @Override
-    public void createDataEntryFormStage(final String eventId, final String programStageId) {
+    public void createDataEntryFormStage(final String eventId, final String programId, final String programStageId) {
         logger.d(TAG, "ProgramStageId: " + programStageId);
 
         if (subscription != null && !subscription.isUnsubscribed()) {
@@ -124,8 +117,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
             subscription = null;
         }
 
-        final String username = currentUserInteractor.userCredentials()
-                .toBlocking().first().getUsername();
+        final String username = currentUserInteractor.username();
 
         subscription = new CompositeSubscription();
         subscription.add(engine().take(1).switchMap(
@@ -133,15 +125,24 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                     @Override
                     public Observable<SimpleEntry<List<FormEntity>, List<FormEntityAction>>> call(
                             final List<FormEntityAction> formEntityActions) {
-                        return Observable.zip(eventInteractor.get(eventId), stageInteractor.get(programStageId),
-                                new Func2<Event, ProgramStage, SimpleEntry<List<FormEntity>, List<FormEntityAction>>>() {
+                        return Observable.zip(eventInteractor.store().get(eventId), RxUtils.single(programInteractor.store().get(programId)),
+                                new Func2<Event, Program, SimpleEntry<List<FormEntity>, List<FormEntityAction>>>() {
 
                                     @Override
                                     public SimpleEntry<List<FormEntity>, List<FormEntityAction>> call(
-                                            Event event, ProgramStage stage) {
+                                            Event event, Program program) {
+                                        ProgramStage currentProgramStage = null;
+                                        for (ProgramStage programStage : program.getProgramStages()) {
+                                            if(programStage.getUid().equals(programStageId)) {
+                                                currentProgramStage = programStage;
+                                            }
+                                        }
 
+                                        if(currentProgramStage == null) {
+                                            throw new IllegalArgumentException("No program stage uid found for programStageId: " + programStageId);
+                                        }
                                         List<ProgramStageDataElement> dataElements =
-                                                dataElementInteractor.list(stage).toBlocking().first();
+                                                currentProgramStage.getProgramStageDataElements();
                                         List<FormEntity> formEntities = transformDataElements(
                                                 username, event, dataElements);
 
@@ -171,7 +172,10 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
     }
 
     @Override
-    public void createDataEntryFormSection(final String eventId, final String programStageSectionId) {
+    public void createDataEntryFormSection(final String eventId,
+                                           final String programId,
+                                           final String programStageId,
+                                           final String programStageSectionId) {
         logger.d(TAG, "ProgramStageSectionId: " + programStageSectionId);
 
         if (subscription != null && !subscription.isUnsubscribed()) {
@@ -179,8 +183,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
             subscription = null;
         }
 
-        final String username = currentUserInteractor.userCredentials()
-                .toBlocking().first().getUsername();
+        final String username = currentUserInteractor.username();
 
         subscription = new CompositeSubscription();
         subscription.add(engine().take(1).switchMap(
@@ -188,14 +191,36 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                     @Override
                     public Observable<SimpleEntry<List<FormEntity>, List<FormEntityAction>>> call(
                             final List<FormEntityAction> formEntityActions) {
-                        return Observable.zip(eventInteractor.get(eventId), sectionInteractor.get(programStageSectionId),
-                                new Func2<Event, ProgramStageSection, SimpleEntry<List<FormEntity>, List<FormEntityAction>>>() {
+                        return Observable.zip(eventInteractor.store().get(eventId), RxUtils.single(programInteractor.store().get(programId)),
+                                new Func2<Event, Program, SimpleEntry<List<FormEntity>, List<FormEntityAction>>>() {
 
                                     @Override
                                     public SimpleEntry<List<FormEntity>, List<FormEntityAction>> call(
-                                            Event event, ProgramStageSection stageSection) {
-                                        List<ProgramStageDataElement> dataElements = dataElementInteractor
-                                                .list(stageSection).toBlocking().first();
+                                            Event event, Program program) {
+                                        ProgramStage currentProgramStage = null;
+                                        ProgramStageSection currentProgramStageSection = null;
+
+                                        for (ProgramStage stage : program.getProgramStages()) {
+                                            if(stage.getUid().equals(programStageId)) {
+                                                currentProgramStage = stage;
+                                            }
+                                        }
+
+                                        if(currentProgramStage == null) {
+                                            throw new IllegalArgumentException("No program stage found for programStageId: " + programStageId);
+                                        }
+
+                                        for (ProgramStageSection stageSection : currentProgramStage.getProgramStageSections()) {
+                                            if(stageSection.getUid().equals(programStageSectionId)) {
+                                                currentProgramStageSection = stageSection;
+                                            }
+                                        }
+
+                                        if(currentProgramStageSection == null) {
+                                            throw new IllegalArgumentException("No program stage section found for programStageSectionId: " + programStageSectionId);
+                                        }
+                                        List<ProgramStageDataElement> dataElements =
+                                                currentProgramStageSection.getProgramStageDataElements();
 
                                         // sort ProgramStageDataElements by sortOrder
                                         if (dataElements != null) {
@@ -306,8 +331,8 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
 
             OptionSet optionSet = dataElement.getOptionSet();
             if (optionSet != null) {
-                List<Option> options = optionSetInteractor.list(
-                        dataElement.getOptionSet()).toBlocking().first();
+                List<Option> options = optionSetInteractor.store().get(
+                        dataElement.getOptionSet().getUid()).getOptions();
                 optionSet.setOptions(options);
             }
         }

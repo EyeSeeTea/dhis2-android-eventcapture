@@ -28,6 +28,7 @@ import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
 
 public class DataEntryFragment extends BaseFragment implements DataEntryView {
     private static final String ARG_EVENT_ID = "arg:eventId";
+    private static final String ARG_PROGRAM_ID = "arg:programId";
     private static final String ARG_PROGRAM_STAGE_ID = "arg:programStageId";
     private static final String ARG_PROGRAM_STAGE_SECTION_ID = "arg:programStageSectionId";
 
@@ -39,9 +40,11 @@ public class DataEntryFragment extends BaseFragment implements DataEntryView {
     RowViewAdapter rowViewAdapter;
 
     public static DataEntryFragment newInstanceForStage(@NonNull String eventId,
+                                                        @NonNull String programId,
                                                         @NonNull String programStageId) {
         Bundle arguments = new Bundle();
         arguments.putString(ARG_EVENT_ID, eventId);
+        arguments.putString(ARG_PROGRAM_ID, programId);
         arguments.putString(ARG_PROGRAM_STAGE_ID, programStageId);
 
         DataEntryFragment dataEntryFragment = new DataEntryFragment();
@@ -51,9 +54,11 @@ public class DataEntryFragment extends BaseFragment implements DataEntryView {
     }
 
     public static DataEntryFragment newInstanceForSection(@NonNull String eventId,
+                                                          @NonNull String programId,
                                                           @NonNull String programStageSectionId) {
         Bundle arguments = new Bundle();
         arguments.putString(ARG_EVENT_ID, eventId);
+        arguments.putString(ARG_PROGRAM_ID, programId);
         arguments.putString(ARG_PROGRAM_STAGE_SECTION_ID, programStageSectionId);
 
         DataEntryFragment dataEntryFragment = new DataEntryFragment();
@@ -64,6 +69,10 @@ public class DataEntryFragment extends BaseFragment implements DataEntryView {
 
     private String getEventId() {
         return getArguments().getString(ARG_EVENT_ID, null);
+    }
+
+    private String getProgramId() {
+        return getArguments().getString(ARG_PROGRAM_ID, null);
     }
 
     private String getProgramStageId() {
@@ -124,13 +133,13 @@ public class DataEntryFragment extends BaseFragment implements DataEntryView {
 
         if (!isEmpty(getProgramStageId())) {
             // Pass event id into presenter
-            dataEntryPresenter.createDataEntryFormStage(getEventId(), getProgramStageId());
+            dataEntryPresenter.createDataEntryFormStage(getEventId(), getProgramId(), getProgramStageId());
             return;
         }
 
         if (!isEmpty(getProgramStageSectionId())) {
             // Pass event id into presenter
-            dataEntryPresenter.createDataEntryFormSection(getEventId(), getProgramStageSectionId());
+            dataEntryPresenter.createDataEntryFormSection(getEventId(), getProgramId(), getProgramStageId(), getProgramStageSectionId());
         }
     }
 

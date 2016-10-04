@@ -213,6 +213,13 @@ public class D2 {
         return instance().trackedEntityInteractor;
     }
 
+    public static String serverUrl() {
+        if(isConfigured() && instance().serverUrlPreferences != null) {
+            return instance().serverUrlPreferences.get();
+        }
+        else throw new UnsupportedOperationException("D2 is not initialized with serverUrl");
+    }
+
     public static class Builder {
         private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 15 * 1000;   // 15s
         private static final int DEFAULT_READ_TIMEOUT_MILLIS = 20 * 1000;      // 20s

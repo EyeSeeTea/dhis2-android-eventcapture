@@ -27,6 +27,7 @@
  */
 
 include ':app', ':core-rules', ':models', ':ui', ':ui-bindings', ':utils', ':core'
+project(':core').projectDir = new File(settingsDir, '../dhis2-android-sdk/core')
 project(':core-rules').projectDir = new File(settingsDir, '../dhis2-android-sdk/core-rules')
 project(':models').projectDir = new File(settingsDir, '../dhis2-android-sdk/models')
 project(':ui').projectDir = new File(settingsDir, '../dhis2-android-sdk/ui')

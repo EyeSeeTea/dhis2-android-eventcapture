@@ -37,6 +37,7 @@ import java.util.Map;
 
 import retrofit2.*;
 import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SystemInfoController {
     private final SystemInfoApi systemInfoApi;
@@ -54,12 +55,9 @@ public class SystemInfoController {
             @Override
             public void onResponse(Call<SystemInfo> call, Response<SystemInfo> response) {
                 SystemInfo systemInfo = response.body();
-
                 systemInfoStore.save(systemInfo);
-
                 Log.d(SystemInfoController.class.getSimpleName(),
                         "serverDateTime: " + systemInfo.getServerDateTime().toString());
-
             }
 
             @Override

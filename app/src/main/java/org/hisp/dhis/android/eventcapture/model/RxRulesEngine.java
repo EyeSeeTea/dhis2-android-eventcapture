@@ -1,11 +1,8 @@
 package org.hisp.dhis.android.eventcapture.model;
 
-import org.hisp.dhis.client.sdk.android.event.EventInteractor;
-import org.hisp.dhis.client.sdk.android.program.ProgramRuleActionInteractor;
-import org.hisp.dhis.client.sdk.android.program.ProgramRuleInteractor;
-import org.hisp.dhis.client.sdk.android.program.ProgramRuleVariableInteractor;
-import org.hisp.dhis.client.sdk.android.user.CurrentUserInteractor;
-import org.hisp.dhis.client.sdk.core.common.utils.ModelUtils;
+import org.hisp.dhis.client.sdk.core.EventInteractor;
+import org.hisp.dhis.client.sdk.core.ProgramInteractor;
+import org.hisp.dhis.client.sdk.core.UserInteractor;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.organisationunit.OrganisationUnit;
 import org.hisp.dhis.client.sdk.models.program.Program;
@@ -14,9 +11,11 @@ import org.hisp.dhis.client.sdk.models.program.ProgramRuleAction;
 import org.hisp.dhis.client.sdk.models.program.ProgramRuleActionType;
 import org.hisp.dhis.client.sdk.models.program.ProgramRuleVariable;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityDataValue;
+import org.hisp.dhis.client.sdk.models.user.User;
 import org.hisp.dhis.client.sdk.rules.RuleEffect;
 import org.hisp.dhis.client.sdk.rules.RuleEngine;
 import org.hisp.dhis.client.sdk.utils.Logger;
+import org.hisp.dhis.client.sdk.utils.ModelUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +23,9 @@ import java.util.List;
 import java.util.Map;
 
 import rx.Observable;
+import rx.Single;
+import rx.SingleSubscriber;
+import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -36,11 +38,9 @@ import rx.subscriptions.CompositeSubscription;
 public class RxRulesEngine {
     private static final String TAG = RxRulesEngine.class.getSimpleName();
 
-    private final CurrentUserInteractor currentUserInteractor;
-    private final ProgramRuleVariableInteractor programRuleVariableInteractor;
-    private final ProgramRuleInteractor programRuleInteractor;
-    private final ProgramRuleActionInteractor programRuleActionInteractor;
+    private final UserInteractor currentUserInteractor;
     private final EventInteractor eventInteractor;
+    private final ProgramInteractor programInteractor;
 
     private Event currentEvent;
     private final Map<String, Event> eventsMap;
@@ -53,58 +53,72 @@ public class RxRulesEngine {
     private final Logger logger;
     private CompositeSubscription subscription;
 
-    public RxRulesEngine(CurrentUserInteractor currentUserInteractor,
-                         ProgramRuleInteractor programRuleInteractor,
-                         ProgramRuleActionInteractor programRuleActionInteractor,
-                         ProgramRuleVariableInteractor programRuleVariableInteractor,
+    public RxRulesEngine(UserInteractor currentUserInteractor,
+                         ProgramInteractor programInteractor,
                          EventInteractor eventInteractor, Logger logger) {
         this.currentUserInteractor = currentUserInteractor;
-        this.programRuleVariableInteractor = programRuleVariableInteractor;
-        this.programRuleInteractor = programRuleInteractor;
-        this.programRuleActionInteractor = programRuleActionInteractor;
+        this.programInteractor = programInteractor;
         this.eventInteractor = eventInteractor;
         this.eventsMap = new HashMap<>();
         this.logger = logger;
         this.subscription = new CompositeSubscription();
     }
 
-    public Observable<Boolean> init(String eventUid) {
-        return eventInteractor.get(eventUid)
-                .switchMap(new Func1<Event, Observable<? extends Boolean>>() {
-                    @Override
-                    public Observable<? extends Boolean> call(final Event event) {
-                        final OrganisationUnit organisationUnit = new OrganisationUnit();
-                        final Program program = new Program();
+    public Observable<Boolean> init(final String eventUid) {
+        return Observable.create(new Observable.OnSubscribe<Event>() {
+            @Override
+            public void call(Subscriber<? super Event> subscriber) {
+                try {
+                    subscriber.onNext(eventInteractor.store().get(eventUid));
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+                subscriber.onCompleted();
+            }
+        }).switchMap(new Func1<Event, Observable<? extends Boolean>>() {
+            @Override
+            public Observable<? extends Boolean> call(final Event event) {
+                final OrganisationUnit organisationUnit = new OrganisationUnit();
+                final Program program = new Program();
 
-                        organisationUnit.setUId(event.getOrgUnit());
-                        program.setUId(event.getProgram());
+                organisationUnit.setUid(event.getOrgUnit());
+                program.setUid(event.getProgram());
 
-                        return Observable.zip(loadRulesEngine(program),
-                                eventInteractor.list(organisationUnit, program),
-                                new Func2<RuleEngine, List<Event>, Boolean>() {
-                                    @Override
-                                    public Boolean call(RuleEngine engine, List<Event> events) {
-                                        // assign rules engine
-                                        ruleEngine = engine;
-                                        currentEvent = event;
+                return Observable.zip(loadRulesEngine(program),
+                        Single.create(new Single.OnSubscribe<List<User>>() {
+                            @Override
+                            public void call(SingleSubscriber<? super List<User>> singleSubscriber) {
+                                try {
+                                    singleSubscriber.onSuccess(eventInteractor.store().list(organisationUnit, program));
+                                } catch (Exception e) {
+                                    singleSubscriber.onError(e);
+                                }
+                            }
+                        }),
+                        new Func2<RuleEngine, List<Event>, Boolean>() {
+                            @Override
+                            public Boolean call(RuleEngine engine, List<Event> events) {
+                                // assign rules engine
+                                ruleEngine = engine;
+                                currentEvent = event;
 
-                                        // clear events map
-                                        eventsMap.clear();
+                                // clear events map
+                                eventsMap.clear();
 
-                                        // put all existing events into map
-                                        eventsMap.putAll(ModelUtils.toMap(eventInteractor.list(
-                                                organisationUnit, program).toBlocking().first()));
+                                // put all existing events into map
+                                eventsMap.putAll(ModelUtils.toMap(eventInteractor.store().list(
+                                        organisationUnit, program)));
 
-                                        // ruleEffectSubject = BehaviorSubject.create();
-                                        ruleEffectSubject = ReplaySubject.createWithSize(1);
-                                        ruleEffectSubject.subscribeOn(Schedulers.computation());
-                                        ruleEffectSubject.observeOn(AndroidSchedulers.mainThread());
+                                // ruleEffectSubject = BehaviorSubject.create();
+                                ruleEffectSubject = ReplaySubject.createWithSize(1);
+                                ruleEffectSubject.subscribeOn(Schedulers.computation());
+                                ruleEffectSubject.observeOn(AndroidSchedulers.mainThread());
 
-                                        return true;
-                                    }
-                                });
-                    }
-                });
+                                return true;
+                            }
+                        });
+            }
+        });
     }
 
     public void notifyDataSetChanged() {
@@ -122,8 +136,7 @@ public class RxRulesEngine {
             subscription = new CompositeSubscription();
         }
 
-        final String username = currentUserInteractor.userCredentials()
-                .toBlocking().first().getUsername();
+        final String username = currentUserInteractor.username();
         subscription.add(eventInteractor.get(currentEvent.getUid())
                 .switchMap(new Func1<Event, Observable<List<RuleEffect>>>() {
                     @Override

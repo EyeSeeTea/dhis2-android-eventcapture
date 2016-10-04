@@ -149,4 +149,5 @@ dependencies {
     // Stetho
     // debugCompile "com.facebook.stetho:stetho:${libs.stethoVeirsion}"
     // debugCompile "com.facebook.stetho:stetho-okhttp3:${libs.stethoVersion}"
+    compile project(path: ':core')
 }

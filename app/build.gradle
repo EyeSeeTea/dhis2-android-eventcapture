@@ -119,6 +119,8 @@ dependencies {
     // Local
     compile project(":core-rules")
     compile project(":ui-bindings")
+    compile project(path: ':core')
+
 
     // Dependencies for testing
     testCompile "junit:junit:${libs.jUnitVersion}"
@@ -149,4 +151,5 @@ dependencies {
     // Stetho
     // debugCompile "com.facebook.stetho:stetho:${libs.stethoVeirsion}"
     // debugCompile "com.facebook.stetho:stetho-okhttp3:${libs.stethoVersion}"
+
 }

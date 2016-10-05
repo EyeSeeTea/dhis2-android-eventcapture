@@ -5,21 +5,16 @@ import android.location.Location;
 import org.hisp.dhis.android.eventcapture.LocationProvider;
 import org.hisp.dhis.android.eventcapture.model.RxRulesEngine;
 import org.hisp.dhis.android.eventcapture.views.FormSectionView;
-import org.hisp.dhis.client.sdk.android.event.EventInteractor;
-import org.hisp.dhis.client.sdk.android.program.ProgramStageInteractor;
-import org.hisp.dhis.client.sdk.android.program.ProgramStageSectionInteractor;
 import org.hisp.dhis.client.sdk.core.EventInteractor;
 import org.hisp.dhis.client.sdk.core.ProgramInteractor;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.models.program.ProgramStage;
 import org.hisp.dhis.client.sdk.models.program.ProgramStageSection;
-import org.hisp.dhis.client.sdk.ui.bindings.commons.RxUtils;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.FormSection;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
 import org.hisp.dhis.client.sdk.utils.Logger;
-import org.joda.time.DateTime;
 
 import java.text.SimpleDateFormat;
 import java.util.AbstractMap.SimpleEntry;
@@ -132,7 +127,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                     public void call(Throwable throwable) {
                         logger.e(TAG, null, throwable);
                     }
-                }));
+                });
     }
 
     @Override
@@ -160,7 +155,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                     public void call(Throwable throwable) {
                         logger.e(TAG, null, throwable);
                     }
-                }));
+                });
     }
 
     @Override
@@ -188,7 +183,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                     public void call(Throwable throwable) {
                         logger.e(TAG, null, throwable);
                     }
-                }));
+                });
     }
 
     private void viewSetLocation(Location location) {
@@ -300,10 +295,9 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
 
                             String eventDate = null;
 
-                            if(event.getEventDate() != null) {
+                            if (event.getEventDate() != null) {
                                 eventDate = simpleDateFormat.format(event.getEventDate());
-                            }
-                            else {
+                            } else {
                                 eventDate = "";
                             }
 

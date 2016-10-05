@@ -32,9 +32,11 @@ import org.hisp.dhis.android.eventcapture.model.SyncWrapper;
 import org.hisp.dhis.android.eventcapture.views.SelectorView;
 import org.hisp.dhis.client.sdk.core.ApiException;
 import org.hisp.dhis.client.sdk.core.EventInteractor;
+import org.hisp.dhis.client.sdk.core.OrganisationUnitInteractor;
 import org.hisp.dhis.client.sdk.core.ProgramInteractor;
 import org.hisp.dhis.client.sdk.models.dataelement.DataElement;
 import org.hisp.dhis.client.sdk.models.event.Event;
+import org.hisp.dhis.client.sdk.models.event.Event.EventStatus;
 import org.hisp.dhis.client.sdk.models.organisationunit.OrganisationUnit;
 import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.models.program.ProgramStage;
@@ -50,14 +52,20 @@ import org.hisp.dhis.client.sdk.ui.models.Picker;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 import org.hisp.dhis.client.sdk.utils.Logger;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
+import org.hisp.dhis.client.sdk.utils.ModelUtils;
+
 
 import java.net.HttpURLConnection;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import rx.Observable;
@@ -74,7 +82,7 @@ import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
 public class SelectorPresenterImpl implements SelectorPresenter {
     private static final String TAG = SelectorPresenterImpl.class.getSimpleName();
     private static final String DATE_FORMAT = "yyyy-MM-dd";
-    private final UserOrganisationUnitInteractor userOrganisationUnitInteractor;
+    private final OrganisationUnitInteractor organisationUnitInteractor;
     private final ProgramInteractor programInteractor;
     private final EventInteractor eventInteractor;
     private final SessionPreferences sessionPreferences;
@@ -86,9 +94,10 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     private boolean hasSyncedBefore;
     private SelectorView selectorView;
     private boolean isSyncing;
+    private final SimpleDateFormat simpleDateFormat;
     private ArrayList reportEntityDataElementFilter;
 
-    public SelectorPresenterImpl(UserOrganisationUnitInteractor interactor,
+    public SelectorPresenterImpl(OrganisationUnitInteractor interactor,
                                  ProgramInteractor programInteractor,
                                  EventInteractor eventInteractor,
                                  SessionPreferences sessionPreferences,
@@ -96,7 +105,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                                  SyncWrapper syncWrapper,
                                  ApiExceptionHandler apiExceptionHandler,
                                  Logger logger) {
-        this.userOrganisationUnitInteractor = interactor;
+        this.organisationUnitInteractor = interactor;
         this.programInteractor = programInteractor;
         this.eventInteractor = eventInteractor;
         this.sessionPreferences = sessionPreferences;
@@ -104,6 +113,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         this.syncWrapper = syncWrapper;
         this.apiExceptionHandler = apiExceptionHandler;
         this.logger = logger;
+        this.simpleDateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
 
         this.subscription = new CompositeSubscription();
         this.hasSyncedBefore = false;
@@ -216,8 +226,8 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     public void listPickers() {
         logger.d(TAG, "listPickers()");
         subscription.add(Observable.zip(
-                userOrganisationUnitInteractor.list(),
-                programInteractor.store().list(),
+                getOrganisationUnits(),
+                getPrograms(),
                 new Func2<List<OrganisationUnit>, List<Program>, Picker>() {
                     @Override
                     public Picker call(List<OrganisationUnit> units, List<Program> programs) {
@@ -247,7 +257,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
 
         orgUnit.setUid(organisationUnitId);
 
-        subscription.add(programInteractor.store().get(programId)
+        subscription.add(getProgram(programId)
                 .switchMap(new Func1<Program, Observable<List<ReportEntity>>>() {
                     @Override
                     public Observable<List<ReportEntity>> call(Program program) {
@@ -268,7 +278,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                         Observable stageElementsObservable = Observable.just(programStage.getProgramStageDataElements());
 
 
-                        return Observable.zip(stageElementsObservable, Observable.just(eventInteractor.store().list(orgUnit, program)),
+                        return Observable.zip(stageElementsObservable, listEventsByOrgUnitProgram(orgUnit,program),
                                 new Func2<List<ProgramStageDataElement>, List<Event>, List<ReportEntity>>() {
 
                                     @Override
@@ -307,17 +317,13 @@ public class SelectorPresenterImpl implements SelectorPresenter {
 
     @Override
     public void createEvent(final String orgUnitId, final String programId) {
-        final OrganisationUnit orgUnit = new OrganisationUnit();
-        final Program program = new Program();
-        orgUnit.setUId(orgUnitId);
-        program.setUId(programId);
 
-        subscription.add(programStageInteractor.list(program)
-                .map(new Func1<List<ProgramStage>, ProgramStage>() {
+        subscription.add(getProgram(programId)
+                .map(new Func1<Program, ProgramStage>() {
                     @Override
-                    public ProgramStage call(List<ProgramStage> stages) {
-                        if (stages != null && !stages.isEmpty()) {
-                            return stages.get(0);
+                    public ProgramStage call(Program program) {
+                        if (program != null && ProgramType.WITHOUT_REGISTRATION.equals(program.getProgramType())) {
+                            return program.getProgramStages().get(0);
                         }
                         return null;
                     }
@@ -329,10 +335,23 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                             throw new IllegalArgumentException("In order to create event, " +
                                     "we need program stage to be in place");
                         }
-                        Event event = eventInteractor.create(orgUnit, program,
-                                programStage, Event.EventStatus.ACTIVE);
-                        event.setEventDate(DateTime.now());
-                        eventInteractor.save(event).toBlocking().first();
+                        Event event = new Event();
+                        event.setOrgUnit(orgUnitId);
+                        event.setProgram(programId);
+                        event.setProgramStage(programStage.getUid());
+                        event.setStatus(EventStatus.ACTIVE);
+
+                        String eventDateString = Calendar.getInstance().getTime().toString();
+                        Date eventDate = null;
+                        try {
+                             eventDate = simpleDateFormat.parse(eventDateString);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+
+                        event.setEventDate(eventDate);
+
+                        eventInteractor.store().save(Collections.singletonList(event));
                         return event;
                     }
                 })
@@ -356,11 +375,11 @@ public class SelectorPresenterImpl implements SelectorPresenter {
 
     @Override
     public void deleteEvent(final ReportEntity reportEntity) {
-        subscription.add(eventInteractor.get(reportEntity.getId())
+        subscription.add(getEvent(reportEntity.getId())
                 .switchMap(new Func1<Event, Observable<Boolean>>() {
                     @Override
                     public Observable<Boolean> call(Event event) {
-                        return eventInteractor.remove(event);
+                        return eventInteractor.store().remove(event);
                     }
                 })
                 .subscribeOn(Schedulers.io())
@@ -428,7 +447,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
 
         // retrieve state map for given events
         // it is done synchronously
-        Map<Long, State> stateMap = eventInteractor.map(events)
+        Map<Long, State> stateMap = eventInteractor.store().map(events)
                 .toBlocking().first();
         List<ReportEntity> reportEntities = new ArrayList<>();
 
@@ -467,7 +486,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                     mapDataElementToValue(event.getDataValues());
 
             dataElementToValueMap.put(Event.EVENT_DATE_KEY,
-                    event.getEventDate().toString(DateTimeFormat.forPattern(DATE_FORMAT)));
+                    event.getEventDate().toString());
             dataElementToValueMap.put(Event.STATUS_KEY, event.getStatus().toString());
 
             reportEntities.add(
@@ -590,5 +609,25 @@ public class SelectorPresenterImpl implements SelectorPresenter {
             treeLevel++;
             node = node.getSelectedChild();
         }
+    }
+
+    private Observable<List<OrganisationUnit>> getOrganisationUnits() {
+        return Observable.create(organisationUnitInteractor.store().list());
+    }
+
+    private Observable<List<Program>> getPrograms() {
+        return Observable.create(programInteractor.store().list());
+    }
+
+    private Observable<Program> getProgram(String uid) {
+        return Observable.create(programInteractor.store().get(uid));
+    }
+
+    private Observable<List<Event>> listEventsByOrgUnitProgram(OrganisationUnit organisationUnit, Program program) {
+        return Observable.create(eventInteractor.store().list(organisationUnit, program));
+    }
+
+    private Observable<Event> getEvent(String uid) {
+        return Observable.create(eventInteractor.store().get(uid));
     }
 }

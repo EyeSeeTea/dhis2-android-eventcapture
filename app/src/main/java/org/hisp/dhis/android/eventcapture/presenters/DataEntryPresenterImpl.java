@@ -550,7 +550,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
     }
 
     private Observable<Boolean> onFormEntityChanged(FormEntity formEntity) {
-        return trackedEntityDataValueInteractor.store().save(mapFormEntityToDataValue(formEntity));
+        return Observable.just(trackedEntityDataValueInteractor.store().save(mapFormEntityToDataValue(formEntity)));
     }
 
     private TrackedEntityDataValue mapFormEntityToDataValue(FormEntity entity) {
@@ -597,14 +597,14 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
     }
 
     private Observable<Event> getEvent(String uid) {
-        return Observable.create(eventInteractor.store().queryByUid(uid));
+        return Observable.just(eventInteractor.store().queryByUid(uid));
     }
 
     private Observable<Program> getProgram(String uid) {
-        return Observable.create(programInteractor.store().queryByUid(uid));
+        return Observable.just(programInteractor.store().queryByUid(uid));
     }
 
     private Observable<OptionSet> getOptionSets(String uid) {
-        return Observable.create(optionSetInteractor.store().queryByUid(uid));
+        return Observable.just(optionSetInteractor.store().queryByUid(uid));
     }
 }

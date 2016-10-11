@@ -30,6 +30,7 @@ package org.hisp.dhis.android.eventcapture.views;
 
 import android.support.annotation.StringDef;
 
+import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
@@ -64,7 +65,7 @@ public interface SelectorView extends View {
 
     void onReportEntityDeletionError(ReportEntity failedEntity);
 
-    void navigateToFormSectionActivity(Event event);
+    void navigateToFormSectionActivity(String eventUid, String programUid);
 
     String getPickerLabel(@PickerLabelId String pickerLabelId);
 

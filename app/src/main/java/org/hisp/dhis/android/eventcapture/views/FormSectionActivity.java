@@ -43,20 +43,18 @@ import org.hisp.dhis.android.eventcapture.EventCaptureApp;
 import org.hisp.dhis.android.eventcapture.FormComponent;
 import org.hisp.dhis.android.eventcapture.R;
 import org.hisp.dhis.android.eventcapture.presenters.FormSectionPresenter;
-import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.ui.adapters.OnPickerItemClickListener;
 import org.hisp.dhis.client.sdk.ui.fragments.DatePickerDialogFragment;
 import org.hisp.dhis.client.sdk.ui.fragments.FilterableDialogFragment;
 import org.hisp.dhis.client.sdk.ui.models.FormSection;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeComparator;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -70,6 +68,7 @@ import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
 // TODO check if configuration changes are handled properly
 public class FormSectionActivity extends AppCompatActivity implements FormSectionView {
     private static final String ARG_EVENT_UID = "arg:eventUid";
+    private static final String ARG_PROGRAM_UID = "arg:programUid";
     private static final String ARG_IS_EVENT_NEW = "arg:isEventNew";
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final int LOCATION_REQUEST_CODE = 42;
@@ -99,19 +98,20 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     FilterableDialogFragment sectionDialogFragment;
     AlertDialog alertDialog;
 
-    public static void navigateToNewEvent(Activity activity, String eventUid) {
-        navigateTo(activity, eventUid, true);
+    public static void navigateToNewEvent(Activity activity, String eventUid, String programUid) {
+        navigateTo(activity, eventUid, programUid, true);
     }
 
     public static void navigateToExistingEvent(Activity activity, String eventUid) {
-        navigateTo(activity, eventUid, false);
+        navigateTo(activity, eventUid, null, false);
     }
 
-    private static void navigateTo(Activity activity, String eventUid, boolean isEventNew) {
+    private static void navigateTo(Activity activity, String eventUid, String programUid, boolean isEventNew) {
         isNull(activity, "activity must not be null");
 
         Intent intent = new Intent(activity, FormSectionActivity.class);
         intent.putExtra(ARG_EVENT_UID, eventUid);
+        intent.putExtra(ARG_PROGRAM_UID, programUid);
         intent.putExtra(ARG_IS_EVENT_NEW, isEventNew);
         activity.startActivity(intent);
     }
@@ -123,6 +123,15 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         }
 
         return getIntent().getExtras().getString(ARG_EVENT_UID, null);
+    }
+
+    private String getProgramUid() {
+        if (getIntent().getExtras() == null || getIntent().getExtras()
+                .getString(ARG_PROGRAM_UID, null) == null) {
+            throw new IllegalArgumentException("You must pass program uid in intent extras");
+        }
+
+        return getIntent().getExtras().getString(ARG_PROGRAM_UID, null);
     }
 
     private boolean isEventNew() {
@@ -281,7 +290,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     public void showFormDefaultSection(String formSectionId) {
         FormSingleSectionAdapter viewPagerAdapter =
                 new FormSingleSectionAdapter(getSupportFragmentManager());
-        viewPagerAdapter.swapData(getEventUid(), formSectionId);
+        viewPagerAdapter.swapData(getEventUid(), getProgramUid(), formSectionId);
 
         // in order not to loose state of ViewPager, first we
         // have to fill FormSectionsAdapter with data, and only then set it to ViewPager
@@ -301,7 +310,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     public void showFormSections(List<FormSection> formSections) {
         FormSectionsAdapter viewPagerAdapter =
                 new FormSectionsAdapter(getSupportFragmentManager());
-        viewPagerAdapter.swapData(getEventUid(), formSections);
+        viewPagerAdapter.swapData(getEventUid(), getProgramUid(), formSections);
 
         // in order not to loose state of ViewPager, first we
         // have to fill FormSectionsAdapter with data, and only then set it to ViewPager
@@ -555,30 +564,29 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
                 calendar.set(Calendar.YEAR, year);
                 calendar.set(Calendar.MONTH, monthOfYear);
                 calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-
-                String stringDate = (new SimpleDateFormat(DATE_FORMAT, Locale.US))
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.US);
+                String stringDate = simpleDateFormat
                         .format(calendar.getTime());
                 String newValue = String.format(Locale.getDefault(), "%s: %s",
                         getString(R.string.report_date), stringDate);
                 textViewReportDate.setText(newValue);
 
-                DateTime currentDateTime = DateTime.now();
-                DateTime selectedDateTime = DateTime.parse(stringDate);
+                Date currentDate = Calendar.getInstance().getTime();
+                Date selectedDate = calendar.getTime();
 
                 /*
                 * in case when user selected today's date, we need to know about time as well.
                 * selectedDateTime does not contain time information (only date), that's why we
                 * need to create a new DateTime object by calling DateTime.now()
                 */
-                DateTime dateTime;
-                if (DateTimeComparator.getDateOnlyInstance()
-                        .compare(currentDateTime, selectedDateTime) == 0) {
-                    dateTime = currentDateTime;
+                Date date = null;
+                if (currentDate.equals(selectedDate)) {
+                    date = currentDate;
                 } else {
-                    dateTime = selectedDateTime;
+                    date = selectedDate;
                 }
 
-                formSectionPresenter.saveEventDate(getEventUid(), dateTime);
+                formSectionPresenter.saveEventDate(getEventUid(), date);
             }
         };
 
@@ -599,6 +607,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         private static final int DEFAULT_STAGE_COUNT = 1;
         private static final int DEFAULT_STAGE_POSITION = 0;
         private String eventId;
+        private String programId;
         private String formSectionId;
 
         public FormSingleSectionAdapter(FragmentManager fragmentManager) {
@@ -608,7 +617,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         @Override
         public Fragment getItem(int position) {
             if (DEFAULT_STAGE_POSITION == position && !isEmpty(formSectionId)) {
-                return DataEntryFragment.newInstanceForStage(eventId, formSectionId);
+                return DataEntryFragment.newInstanceForStage(eventId, programId, formSectionId);
             }
 
             return null;
@@ -619,8 +628,9 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
             return isEmpty(formSectionId) ? 0 : DEFAULT_STAGE_COUNT;
         }
 
-        public void swapData(String eventId, String programStageId) {
+        public void swapData(String eventId, String programId, String programStageId) {
             this.eventId = eventId;
+            this.programId = programId;
             this.formSectionId = programStageId;
             this.notifyDataSetChanged();
         }
@@ -629,6 +639,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     private static class FormSectionsAdapter extends FragmentStatePagerAdapter {
         private final List<FormSection> formSections;
         private String eventId;
+        private String programId;
 
         public FormSectionsAdapter(FragmentManager fragmentManager) {
             super(fragmentManager);
@@ -638,7 +649,7 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
         @Override
         public Fragment getItem(int position) {
             FormSection formSection = formSections.get(position);
-            return DataEntryFragment.newInstanceForSection(eventId, formSection.getId());
+            return DataEntryFragment.newInstanceForSection(eventId, programId, formSection.getId());
         }
 
         @Override
@@ -657,8 +668,9 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
             return formSections;
         }
 
-        public void swapData(String eventId, List<FormSection> formSections) {
+        public void swapData(String eventId, String programId, List<FormSection> formSections) {
             this.eventId = eventId;
+            this.programId = programId;
             this.formSections.clear();
 
             if (formSections != null) {

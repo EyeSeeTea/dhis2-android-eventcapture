@@ -30,12 +30,15 @@ package org.hisp.dhis.android.eventcapture.presenters;
 
 import org.hisp.dhis.android.eventcapture.model.SyncWrapper;
 import org.hisp.dhis.android.eventcapture.views.SelectorView;
+import org.hisp.dhis.client.sdk.core.ModelUtils;
 import org.hisp.dhis.client.sdk.core.commons.ApiException;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.organisationunit.OrganisationUnitInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
+import org.hisp.dhis.client.sdk.models.common.State;
 import org.hisp.dhis.client.sdk.models.dataelement.DataElement;
 import org.hisp.dhis.client.sdk.models.event.Event;
+import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.models.organisationunit.OrganisationUnit;
 import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.models.program.ProgramStage;
@@ -73,6 +76,10 @@ import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 
+import static org.hisp.dhis.client.sdk.models.common.State.ERROR;
+import static org.hisp.dhis.client.sdk.models.common.State.SYNCED;
+import static org.hisp.dhis.client.sdk.models.common.State.TO_POST;
+import static org.hisp.dhis.client.sdk.models.common.State.TO_UPDATE;
 import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
 import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
 
@@ -348,7 +355,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
 
                         event.setEventDate(eventDate);
 
-                        eventInteractor.store().save(Collections.singletonList(event));
+                        eventInteractor.store().save(event);
                         return event;
                     }
                 })
@@ -358,7 +365,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                     @Override
                     public void call(Event event) {
                         if (selectorView != null) {
-                            selectorView.navigateToFormSectionActivity(event);
+                            selectorView.navigateToFormSectionActivity(event.getUid(), event.getProgram());
                         }
                     }
                 }, new Action1<Throwable>() {
@@ -376,7 +383,12 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                 .switchMap(new Func1<Event, Observable<Boolean>>() {
                     @Override
                     public Observable<Boolean> call(Event event) {
-                        return eventInteractor.store().remove(event);
+                        int eventDeleted = eventInteractor.store().delete(event);
+
+                        if(eventDeleted > 0) {
+                            return Observable.just(true);
+                        }
+                        else return Observable.just(false);
                     }
                 })
                 .subscribeOn(Schedulers.io())
@@ -405,7 +417,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
             ApiException exception = (ApiException) throwable;
 
             if (exception.getResponse() != null) {
-                switch (exception.getResponse().getStatus()) {
+                switch (exception.getResponse().code()) {
                     case HttpURLConnection.HTTP_UNAUTHORIZED: {
                         selectorView.showError(error.getDescription());
                         break;
@@ -444,19 +456,19 @@ public class SelectorPresenterImpl implements SelectorPresenter {
 
         // retrieve state map for given events
         // it is done synchronously
-        Map<Long, State> stateMap = eventInteractor.store().map(events)
-                .toBlocking().first();
+//        Map<Long, State> stateMap = eventInteractor.store().queryAll(events)
+//                .toBlocking().first();
         List<ReportEntity> reportEntities = new ArrayList<>();
 
         for (Event event : events) {
             // status of event
             ReportEntity.Status status;
             // get state of event from database
-            State state = stateMap.get(event.getId());
+            State state = event.getState();
             // State state = eventInteractor.get(event).toBlocking().first();
 
-            logger.d(TAG, "State action for event " + event + " is " + state.getAction());
-            switch (state.getAction()) {
+            logger.d(TAG, "State action for event " + event + " is " + state.toString());
+            switch (event.getState()) {
                 case SYNCED: {
                     status = ReportEntity.Status.SENT;
                     break;
@@ -475,7 +487,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                 }
                 default: {
                     throw new IllegalArgumentException(
-                            "Unsupported event state: " + state.getAction());
+                            "Unsupported event state: " + state.toString());
                 }
             }
 
@@ -609,22 +621,22 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     }
 
     private Observable<List<OrganisationUnit>> getOrganisationUnits() {
-        return Observable.create(organisationUnitInteractor.store().list());
+        return Observable.just(organisationUnitInteractor.store().queryAll());
     }
 
     private Observable<List<Program>> getPrograms() {
-        return Observable.create(programInteractor.store().list());
+        return Observable.just(programInteractor.store().queryAll());
     }
 
     private Observable<Program> getProgram(String uid) {
-        return Observable.create(programInteractor.store().get(uid));
+        return Observable.just(programInteractor.store().queryByUid(uid));
     }
 
     private Observable<List<Event>> listEventsByOrgUnitProgram(OrganisationUnit organisationUnit, Program program) {
-        return Observable.create(eventInteractor.store().list(organisationUnit, program));
+        return Observable.just(eventInteractor.store().query(organisationUnit.getUid(), program.getUid()));
     }
 
     private Observable<Event> getEvent(String uid) {
-        return Observable.create(eventInteractor.store().get(uid));
+        return Observable.just(eventInteractor.store().queryByUid(uid));
     }
 }

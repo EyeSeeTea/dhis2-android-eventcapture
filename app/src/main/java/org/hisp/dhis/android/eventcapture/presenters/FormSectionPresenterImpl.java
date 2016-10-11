@@ -286,7 +286,6 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
     }
 
     private Subscription showFormPickers(final Event event) {
-        final Program program = new Program();
         String programId = event.getProgram();
 
         return getProgram(programId)
@@ -420,33 +419,14 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                 });
     }
     private Observable<Program> getProgram(final String programUid) {
-        return Observable.create(programInteractor.store().queryByUid(programUid));
+        return Observable.just(programInteractor.store().queryByUid(programUid));
     }
 
     private Single storeEvent(final Event event) {
-        return Single.create(eventInteractor.store().save(Arrays.asList(event)));
+        return Single.just(eventInteractor.store().save(event));
     }
 
     private Observable<Event> getEvent(final String eventUid) {
-        return Observable.create(eventInteractor.store().queryByUid(eventUid));
-    }
-
-    private Observable<ProgramStage> loadProgramStage(final String programId) {
-        return programInteractor.store().queryByUid(programId)
-                .map(new Func1<Program, ProgramStage>() {
-                    @Override
-                    public ProgramStage call(Program program) {
-                        // since this form is intended to be used in event capture
-                        // and programs for event capture apps consist only from one
-                        // and only one program stage, we can just retrieve it from the list
-                        if (program == null) {
-                            logger.e(TAG, "Form construction failed. No program " +
-                                    "stages are assigned to given program: " + programId);
-                            return null;
-                        }
-
-                        return program.getProgramStages().get(0);
-                    }
-                });
+        return Observable.just(eventInteractor.store().queryByUid(eventUid));
     }
 }

@@ -61,7 +61,6 @@ import android.widget.Toast;
 import org.hisp.dhis.android.eventcapture.EventCaptureApp;
 import org.hisp.dhis.android.eventcapture.R;
 import org.hisp.dhis.android.eventcapture.presenters.SelectorPresenter;
-import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.ui.adapters.PickerAdapter;
 import org.hisp.dhis.client.sdk.ui.adapters.PickerAdapter.OnPickerListChangeListener;
 import org.hisp.dhis.client.sdk.ui.adapters.ReportEntityAdapter;
@@ -308,9 +307,9 @@ public class SelectorFragment extends BaseFragment implements SelectorView,
     }
 
     @Override
-    public void navigateToFormSectionActivity(Event event) {
-        logger.d(TAG, String.format("Event with uid=%s is created", event.getUid()));
-        FormSectionActivity.navigateToNewEvent(getActivity(), event.getUid());
+    public void navigateToFormSectionActivity(String eventUid, String programUid) {
+        logger.d(TAG, String.format("Event with uid=%s is created", eventUid));
+        FormSectionActivity.navigateToNewEvent(getActivity(), eventUid, programUid);
     }
 
     @Override

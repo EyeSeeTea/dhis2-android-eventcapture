@@ -30,7 +30,17 @@ package org.hisp.dhis.android.eventcapture;
 
 import android.content.Context;
 
+import org.hisp.dhis.android.eventcapture.presenters.SelectorPresenter;
+import org.hisp.dhis.android.eventcapture.presenters.SelectorPresenterImpl;
 import org.hisp.dhis.client.sdk.core.D2;
+import org.hisp.dhis.client.sdk.core.event.EventInteractor;
+import org.hisp.dhis.client.sdk.core.event.EventInteractorImpl;
+import org.hisp.dhis.client.sdk.core.option.OptionSetInteractor;
+import org.hisp.dhis.client.sdk.core.option.OptionSetInteractorImpl;
+import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
+import org.hisp.dhis.client.sdk.core.program.ProgramInteractorImpl;
+import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractor;
+import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractorImpl;
 import org.hisp.dhis.client.sdk.core.user.UserInteractor;
 import org.hisp.dhis.client.sdk.ui.AppPreferences;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandler;
@@ -53,6 +63,7 @@ import org.hisp.dhis.client.sdk.ui.bindings.presenters.SettingsPresenterImpl;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
 import dagger.Module;
+import dagger.Provides;
 
 import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
 
@@ -75,50 +86,96 @@ public class UserModule implements DefaultUserModule {
         }
     }
 
+    @Provides
+    @PerUser
     @Override
     public UserInteractor providesCurrentUserInteractor() {
         return D2.me();
     }
 
+    @Provides
+    @PerUser
     @Override
     public LauncherPresenter providesLauncherPresenter(UserInteractor currentUserInteractor) {
         return new LauncherPresenterImpl(currentUserInteractor);
     }
 
+    @Provides
+    @PerUser
     @Override
-    public LoginPresenter providesLoginPresenter(UserInteractor currentUserInteractor,
-                                                 ApiExceptionHandler apiExceptionHandler, Logger logger) {
-        return new LoginPresenterImpl(currentUserInteractor, apiExceptionHandler, logger);
+    public LoginPresenter providesLoginPresenter(
+            UserInteractor userInteractor, ApiExceptionHandler apiExceptionHandler, Logger logger) {
+        return new LoginPresenterImpl(userInteractor, apiExceptionHandler, logger);
     }
 
+    @Provides
+    @PerUser
     @Override
-    public HomePresenter providesHomePresenter(UserInteractor currentUserInteractor,
-                                               SyncDateWrapper syncDateWrapper, Logger logger) {
+    public HomePresenter providesHomePresenter(
+            UserInteractor currentUserInteractor, SyncDateWrapper syncDateWrapper, Logger logger) {
         return new HomePresenterImpl(currentUserInteractor, syncDateWrapper, logger);
     }
 
+    @Provides
+    @PerUser
     @Override
-    public ProfilePresenter providesProfilePresenter(UserInteractor currentUserInteractor,
+    public ProfilePresenter providesProfilePresenter(UserInteractor userInteractor,
                                                      SyncDateWrapper syncDateWrapper,
                                                      DefaultAppAccountManager appAccountManager,
                                                      DefaultNotificationHandler defaultNotificationHandler,
                                                      Logger logger) {
-        return new ProfilePresenterImpl(currentUserInteractor, syncDateWrapper,
+        return new ProfilePresenterImpl(userInteractor, syncDateWrapper,
                 appAccountManager, defaultNotificationHandler, logger);
     }
 
+    @Provides
+    @PerUser
     @Override
     public SettingsPresenter providesSettingsPresenter(AppPreferences appPreferences, DefaultAppAccountManager appAccountManager) {
         return new SettingsPresenterImpl(appPreferences, appAccountManager);
     }
 
+    @Provides
+    @PerUser
     @Override
     public DefaultAppAccountManager providesAppAccountManager(Context context, AppPreferences appPreferences, UserInteractor currentUserInteractor, Logger logger) {
         return new DefaultAppAccountManagerImpl(context, appPreferences, currentUserInteractor, authority, accountType, logger);
     }
 
+    @Provides
+    @PerUser
     @Override
     public DefaultNotificationHandler providesNotificationHandler(Context context) {
         return new DefaultNotificationHandlerImpl(context);
+    }
+
+    @Provides
+    @PerUser
+    public SelectorPresenter providesSelectorPresenter(Context context) {
+        return new SelectorPresenterImpl(null, null, null, null, null, null, null, null);
+    }
+
+    @Provides
+    @PerUser
+    public ProgramInteractor providesProgramInteractor() {
+        return new ProgramInteractorImpl(null, null, null);
+    }
+
+    @Provides
+    @PerUser
+    public EventInteractor providesEventInteractor() {
+        return new EventInteractorImpl();
+    }
+
+    @Provides
+    @PerUser
+    public OptionSetInteractor providesOptionSetInteractor() {
+        return new OptionSetInteractorImpl(null, null);
+    }
+
+    @Provides
+    @PerUser
+    public TrackedEntityDataValueInteractor providesTrackedEntityDataValueInteractor() {
+        return new TrackedEntityDataValueInteractorImpl();
     }
 }

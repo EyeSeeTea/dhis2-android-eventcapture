@@ -31,6 +31,7 @@ package org.hisp.dhis.android.eventcapture;
 import android.app.Application;
 import android.content.Context;
 
+import org.hisp.dhis.android.eventcapture.model.SyncWrapper;
 import org.hisp.dhis.client.sdk.core.commons.LoggerImpl;
 import org.hisp.dhis.client.sdk.ui.AppPreferences;
 import org.hisp.dhis.client.sdk.ui.AppPreferencesImpl;
@@ -70,6 +71,12 @@ public class AppModule implements DefaultAppModule {
 
     @Provides
     @Singleton
+    public Context providesContext() {
+        return application;
+    }
+
+    @Provides
+    @Singleton
     public Logger providesLogger() {
         return new LoggerImpl();
     }
@@ -100,5 +107,11 @@ public class AppModule implements DefaultAppModule {
     @Override
     public SyncDateWrapper providesSyncDateWrapper(Context context, AppPreferences preferences, Logger logger) {
         return new SyncDateWrapper(context, preferences);
+    }
+
+    @Provides
+    @Singleton
+    public SyncWrapper providesSyncWrapper() {
+        return new SyncWrapper(null, null, null, null);
     }
 }

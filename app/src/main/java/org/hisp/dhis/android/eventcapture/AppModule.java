@@ -31,7 +31,7 @@ package org.hisp.dhis.android.eventcapture;
 import android.app.Application;
 import android.content.Context;
 
-import org.hisp.dhis.client.sdk.android.api.utils.LoggerImpl;
+import org.hisp.dhis.client.sdk.core.commons.LoggerImpl;
 import org.hisp.dhis.client.sdk.ui.AppPreferences;
 import org.hisp.dhis.client.sdk.ui.AppPreferencesImpl;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandler;
@@ -64,7 +64,7 @@ public class AppModule implements DefaultAppModule {
     @Provides
     @Singleton
     @Override
-    public Context providesContext() {
+    public Application providesApplication() {
         return application;
     }
 

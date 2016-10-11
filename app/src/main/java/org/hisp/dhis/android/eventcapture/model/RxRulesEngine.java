@@ -4,12 +4,8 @@ import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.core.user.UserInteractor;
 import org.hisp.dhis.client.sdk.models.event.Event;
-import org.hisp.dhis.client.sdk.models.organisationunit.OrganisationUnit;
 import org.hisp.dhis.client.sdk.models.program.Program;
-import org.hisp.dhis.client.sdk.models.program.ProgramRule;
-import org.hisp.dhis.client.sdk.models.program.ProgramRuleAction;
 import org.hisp.dhis.client.sdk.models.program.ProgramRuleActionType;
-import org.hisp.dhis.client.sdk.models.program.ProgramRuleVariable;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityDataValue;
 import org.hisp.dhis.client.sdk.models.user.User;
 import org.hisp.dhis.client.sdk.rules.RuleEffect;
@@ -22,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 
 import rx.Observable;
-import rx.Single;
-import rx.SingleSubscriber;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -80,24 +74,10 @@ public class RxRulesEngine {
         }).switchMap(new Func1<Event, Observable<? extends Boolean>>() {
             @Override
             public Observable<? extends Boolean> call(final Event event) {
-                final OrganisationUnit organisationUnit = new OrganisationUnit();
-                final Program program = new Program();
 
-                organisationUnit.setUid(event.getOrgUnit());
-                program.setUid(event.getProgram());
-
-                return Observable.zip(loadRulesEngine(program),
-                        Single.create(new Single.OnSubscribe<List<User>>() {
-                            @Override
-                            public void call(SingleSubscriber<? super List<User>> singleSubscriber) {
-                                try {
-                                    singleSubscriber.onSuccess(eventInteractor.store().
-                                            query(organisationUnit.getUid(), program.getUid()));
-                                } catch (Exception e) {
-                                    singleSubscriber.onError(e);
-                                }
-                            }
-                        }),
+                final String organisationUnitUid = event.getOrgUnit();
+                final String programUid = event.getProgram();
+                return Observable.zip(loadRulesEngine(programUid), queryEvents(organisationUnitUid, programUid),
                         new Func2<RuleEngine, List<Event>, Boolean>() {
                             @Override
                             public Boolean call(RuleEngine engine, List<Event> events) {
@@ -109,8 +89,7 @@ public class RxRulesEngine {
                                 eventsMap.clear();
 
                                 // put all existing events into map
-                                eventsMap.putAll(toMap(eventInteractor.store().list(
-                                        organisationUnit, program)));
+                                eventsMap.putAll(toMap(events));
 
                                 // ruleEffectSubject = BehaviorSubject.create();
                                 ruleEffectSubject = ReplaySubject.createWithSize(1);
@@ -120,8 +99,18 @@ public class RxRulesEngine {
                                 return true;
                             }
                         });
+
             }
         });
+    }
+
+    private Observable<List<Event>> queryEvents(String organisationUnitUid, String programUid) {
+        return Observable.just(eventInteractor.store().query(organisationUnitUid, programUid));
+    }
+
+    //TODO fix hack for getting first user
+    private Observable<User> loadUser() {
+        return Observable.just(currentUserInteractor.store().queryAll().get(0));
     }
 
     public void notifyDataSetChanged() {
@@ -140,7 +129,7 @@ public class RxRulesEngine {
         }
 
         final String username = currentUserInteractor.username();
-        subscription.add(eventInteractor.store().queryByUid(currentEvent.getUid())
+        subscription.add(Observable.just(eventInteractor.store().queryByUid(currentEvent.getUid()))
                 .switchMap(new Func1<Event, Observable<List<RuleEffect>>>() {
                     @Override
                     public Observable<List<RuleEffect>> call(Event event) {
@@ -189,77 +178,16 @@ public class RxRulesEngine {
         return ruleEffectSubject;
     }
 
-    private Observable<RuleEngine> loadRulesEngine(Program program) {
+    private Observable<RuleEngine> loadRulesEngine(String programUid) {
+        Program program = programInteractor.store().queryByUid(programUid);
+        isNull(program, "Cannot find program for programUid: " + programUid);
+
         RuleEngine ruleEngine = new RuleEngine.Builder()
                 .programRuleVariables(program.getProgramRuleVariables())
                 .programRules(program.getProgramRules())
                 .build();
 
-        return Observable.create(ruleEngine);
-
-
-        return Observable.zip(loadProgramRules(program), loadProgramRuleVariables(program),
-                new Func2<List<ProgramRule>, List<ProgramRuleVariable>, RuleEngine>() {
-                    @Override
-                    public RuleEngine call(List<ProgramRule> programRules,
-                                           List<ProgramRuleVariable> programRuleVariables) {
-                        return new RuleEngine.Builder()
-                                .programRuleVariables(programRuleVariables)
-                                .programRules(programRules)
-                                .build();
-                    }
-                });
-    }
-
-    private Observable<List<ProgramRule>> loadProgramRules(Program program) {
-        isNull(program, "Program must not be null");
-        List<ProgramRule> programRules;
-
-        if (program.getProgramRules().isEmpty()) {
-            programRules = new ArrayList<>();
-        }
-        return program.getProgramRules();
-
-
-        return programInteractor.store().queryByUid(program.getUid())
-                .map(new Func1<List<ProgramRule>, List<ProgramRule>>() {
-                    @Override
-                    public List<ProgramRule> call(List<ProgramRule> programRules) {
-                        if (programRules == null) {
-                            programRules = new ArrayList<>();
-                        }
-
-                        for (ProgramRule programRule : programRules) {
-                            List<ProgramRuleAction> programRuleActions = programRuleActionInteractor
-                                    .list(programRule).toBlocking().first();
-                            programRule.setProgramRuleActions(programRuleActions);
-                        }
-
-                        return programRules;
-                    }
-                });
-    }
-
-    private Observable<List<ProgramRuleVariable>> loadProgramRuleVariables(Program program) {
-        List<ProgramRuleVariable> programRuleVariables;
-        if (program.getProgramRuleVariables() == null) {
-            programRuleVariables = new ArrayList<>();
-        } else {
-            programRuleVariables = program.getProgramRuleVariables();
-        }
-
-        return Observable.create(programRuleVariables);
-        return programRuleVariableInteractor.list(program)
-                .map(new Func1<List<ProgramRuleVariable>, List<ProgramRuleVariable>>() {
-                    @Override
-                    public List<ProgramRuleVariable> call(List<ProgramRuleVariable> variables) {
-                        if (variables == null) {
-                            variables = new ArrayList<>();
-                        }
-
-                        return variables;
-                    }
-                });
+        return Observable.just(ruleEngine);
     }
 
 
@@ -306,7 +234,7 @@ public class RxRulesEngine {
                         }
 
                         event.setDataValues(new ArrayList<>(dataValueMap.values()));
-                        return eventInteractor.store().save(event);
+                        return Observable.just(eventInteractor.store().save(event));
                     }
                 });
     }

@@ -28,15 +28,18 @@
 
 package org.hisp.dhis.android.eventcapture.model;
 
+import org.hisp.dhis.client.sdk.core.ModelUtils;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.organisationunit.OrganisationUnitInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
+import org.hisp.dhis.client.sdk.models.common.State;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.organisationunit.OrganisationUnit;
 import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.models.program.ProgramType;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.SyncDateWrapper;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -68,7 +71,7 @@ public class SyncWrapper {
         this.eventInteractor = eventInteractor;
         this.syncDateWrapper = syncDateWrapper;
     }
-
+    //TODO Fix orgunitInteractor.pull() and programInteractor.pull()
     public Observable<List<Program>> syncMetaData() {
         Set<ProgramType> programTypes = new HashSet<>();
         programTypes.add(ProgramType.WITHOUT_REGISTRATION);
@@ -115,8 +118,10 @@ public class SyncWrapper {
             });
         }
 
-        EnumSet<Action> updateActions = EnumSet.of(Action.TO_POST, Action.TO_UPDATE);
-        return eventInteractor.listByActions(updateActions)
+        List<State> updateActions = new ArrayList<>();
+        updateActions.add(State.TO_POST);
+        updateActions.add(State.TO_UPDATE);
+        return Observable.just(eventInteractor.store().query(updateActions))
                 .switchMap(new Func1<List<Event>, Observable<Boolean>>() {
                     @Override
                     public Observable<Boolean> call(final List<Event> events) {

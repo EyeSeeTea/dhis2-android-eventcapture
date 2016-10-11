@@ -44,6 +44,7 @@ import org.hisp.dhis.android.eventcapture.FormComponent;
 import org.hisp.dhis.android.eventcapture.R;
 import org.hisp.dhis.android.eventcapture.presenters.FormSectionPresenter;
 import org.hisp.dhis.client.sdk.models.event.Event;
+import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.ui.adapters.OnPickerItemClickListener;
 import org.hisp.dhis.client.sdk.ui.fragments.DatePickerDialogFragment;
 import org.hisp.dhis.client.sdk.ui.fragments.FilterableDialogFragment;
@@ -349,10 +350,10 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     }
 
     @Override
-    public void showEventStatus(Event.EventStatus eventStatus) {
+    public void showEventStatus(EventStatus eventStatus) {
         if (fabComplete != null && eventStatus != null) {
             fabComplete.setVisibility(View.VISIBLE);
-            fabComplete.setActivated(Event.EventStatus.COMPLETED.equals(eventStatus));
+            fabComplete.setActivated(EventStatus.COMPLETED.equals(eventStatus));
         }
     }
 
@@ -518,11 +519,11 @@ public class FormSectionActivity extends AppCompatActivity implements FormSectio
     }
 
     private void incompleteEvent() {
-        formSectionPresenter.saveEventStatus(getEventUid(), Event.EventStatus.ACTIVE);
+        formSectionPresenter.saveEventStatus(getEventUid(), EventStatus.ACTIVE);
     }
 
     private void completeEvent() {
-        formSectionPresenter.saveEventStatus(getEventUid(), Event.EventStatus.COMPLETED);
+        formSectionPresenter.saveEventStatus(getEventUid(), EventStatus.COMPLETED);
     }
 
     private class OnSearchSectionsClickListener implements OnPickerItemClickListener {

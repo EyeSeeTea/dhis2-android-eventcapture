@@ -36,14 +36,11 @@ import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.core.CrashlyticsCore;
 
 import org.hisp.dhis.android.eventcapture.views.HomeActivity;
-import org.hisp.dhis.client.sdk.android.api.utils.LoggerImpl;
-import org.hisp.dhis.client.sdk.core.D2;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.DefaultAppModule;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.DefaultUserModule;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.Inject;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.NavigationHandler;
 import org.hisp.dhis.client.sdk.ui.bindings.views.DefaultLoginActivity;
-import org.hisp.dhis.client.sdk.utils.Logger;
 
 import io.fabric.sdk.android.Fabric;
 import okhttp3.OkHttpClient;
@@ -116,9 +113,10 @@ public final class EventCaptureApp extends Application {
 
     private void init(Context context) {
         OkHttpClient okHttpClient = providesOkHttpClient();
-        D2.Flavor flavor = providesFlavor(okHttpClient, new LoggerImpl());
 
-        D2.init(context, flavor);
+        // TODO REFACTOR: init D2
+        // D2.Flavor flavor = providesFlavor(okHttpClient, new LoggerImpl());
+        // D2.init(context, flavor);
     }
 
     private OkHttpClient providesOkHttpClient() {
@@ -135,12 +133,12 @@ public final class EventCaptureApp extends Application {
         return new OkHttpClient();
     }
 
-    private D2.Flavor providesFlavor(OkHttpClient okHttpClient, Logger logger) {
-        return new D2.Builder()
-                .okHttp(okHttpClient)
-                .logger(logger)
-                .build();
-    }
+//    private D2.Flavor providesFlavor(OkHttpClient okHttpClient, Logger logger) {
+//        return new D2.Builder()
+//                .okHttp(okHttpClient)
+//                .logger(logger)
+//                .build();
+//    }
 
     public FormComponent createFormComponent() {
         isNull(userComponent, "UserComponent must not be null");

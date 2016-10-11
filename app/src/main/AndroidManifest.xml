@@ -93,15 +93,6 @@
                 android:resource="@xml/syncadapter" />
         </service>
 
-        <service
-            android:name=".export.EventExportService"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="org.hisp.dhis.android.eventcapture.export.EventExportService.EXPORT" />
-            </intent-filter>
-        </service>
-
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="${fabric_api_key}" />

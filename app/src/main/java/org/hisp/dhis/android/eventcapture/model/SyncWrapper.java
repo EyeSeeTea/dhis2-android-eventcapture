@@ -76,63 +76,67 @@ public class SyncWrapper {
         Set<ProgramType> programTypes = new HashSet<>();
         programTypes.add(ProgramType.WITHOUT_REGISTRATION);
 
-        return Observable.zip(organisationUnitInteractor.pull(),
-                programInteractor.pull(ProgramFields.DESCENDANTS, programTypes),
-                new Func2<List<OrganisationUnit>, List<Program>, List<Program>>() {
-                    @Override
-                    public List<Program> call(List<OrganisationUnit> units, List<Program> programs) {
-                        if (syncDateWrapper != null) {
-                            syncDateWrapper.setLastSyncedNow();
-                        }
-                        return programs;
-                    }
-                });
+        return null;
+//        return Observable.zip(organisationUnitInteractor.pull(),
+//                programInteractor.pull(ProgramFields.DESCENDANTS, programTypes),
+//                new Func2<List<OrganisationUnit>, List<Program>, List<Program>>() {
+//                    @Override
+//                    public List<Program> call(List<OrganisationUnit> units, List<Program> programs) {
+//                        if (syncDateWrapper != null) {
+//                            syncDateWrapper.setLastSyncedNow();
+//                        }
+//                        return programs;
+//                    }
+//                });
     }
 
     public Observable<List<Event>> syncData() {
-        return eventInteractor.list()
-                .switchMap(new Func1<List<Event>, Observable<List<Event>>>() {
-                    @Override
-                    public Observable<List<Event>> call(List<Event> events) {
-                        Set<String> uids = ModelUtils.toUidSet(events);
-                        if (uids != null && !uids.isEmpty()) {
-                            if (syncDateWrapper != null) {
-                                syncDateWrapper.setLastSyncedNow();
-                            }
-                            return eventInteractor.sync(uids);
-                        }
-                        return Observable.empty();
-                    }
-                });
+        return null;
+//        return eventInteractor.list()
+//                .switchMap(new Func1<List<Event>, Observable<List<Event>>>() {
+//                    @Override
+//                    public Observable<List<Event>> call(List<Event> events) {
+//                        Set<String> uids = ModelUtils.toUidSet(events);
+//                        if (uids != null && !uids.isEmpty()) {
+//                            if (syncDateWrapper != null) {
+//                                syncDateWrapper.setLastSyncedNow();
+//                            }
+//                            return eventInteractor.sync(uids);
+//                        }
+//                        return Observable.empty();
+//                    }
+//                });
     }
 
     public Observable<Boolean> checkIfSyncIsNeeded() {
-
         if (eventInteractor == null) {
             // no eventInteractor exists - return false (i.e. sync is not needed)
-            return Observable.create(new DefaultOnSubscribe<Boolean>() {
-                @Override
-                public Boolean call() {
-                    return false;
-                }
-            });
+            return null;
+//            return Observable.create(new DefaultOnSubscribe<Boolean>() {
+//                @Override
+//                public Boolean call() {
+//                    return false;
+//                }
+//            });
         }
 
         List<State> updateActions = new ArrayList<>();
         updateActions.add(State.TO_POST);
         updateActions.add(State.TO_UPDATE);
-        return Observable.just(eventInteractor.store().query(updateActions))
-                .switchMap(new Func1<List<Event>, Observable<Boolean>>() {
-                    @Override
-                    public Observable<Boolean> call(final List<Event> events) {
-                        return Observable.create(new DefaultOnSubscribe<Boolean>() {
-                            @Override
-                            public Boolean call() {
-                                return events != null && !events.isEmpty();
-                            }
-                        });
-                    }
-                });
+
+        return null;
+//        return Observable.just(eventInteractor.store().query(updateActions))
+//                .switchMap(new Func1<List<Event>, Observable<Boolean>>() {
+//                    @Override
+//                    public Observable<Boolean> call(final List<Event> events) {
+//                        return Observable.create(new DefaultOnSubscribe<Boolean>() {
+//                            @Override
+//                            public Boolean call() {
+//                                return events != null && !events.isEmpty();
+//                            }
+//                        });
+//                    }
+//                });
     }
 
     public Observable<List<Event>> backgroundSync() {

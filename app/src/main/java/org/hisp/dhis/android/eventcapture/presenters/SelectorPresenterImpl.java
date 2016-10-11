@@ -52,7 +52,6 @@ import org.hisp.dhis.client.sdk.ui.models.Picker;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 import org.hisp.dhis.client.sdk.utils.Logger;
-import org.hisp.dhis.client.sdk.utils.ModelUtils;
 
 
 import java.net.HttpURLConnection;

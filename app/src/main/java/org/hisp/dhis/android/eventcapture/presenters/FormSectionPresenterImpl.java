@@ -5,9 +5,10 @@ import android.location.Location;
 import org.hisp.dhis.android.eventcapture.LocationProvider;
 import org.hisp.dhis.android.eventcapture.model.RxRulesEngine;
 import org.hisp.dhis.android.eventcapture.views.FormSectionView;
-import org.hisp.dhis.client.sdk.core.EventInteractor;
-import org.hisp.dhis.client.sdk.core.ProgramInteractor;
+import org.hisp.dhis.client.sdk.core.event.EventInteractor;
+import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.models.event.Event;
+import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.models.program.ProgramStage;
 import org.hisp.dhis.client.sdk.models.program.ProgramStageSection;
@@ -162,7 +163,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
     }
 
     @Override
-    public void saveEventStatus(final String eventUid, final Event.EventStatus eventStatus) {
+    public void saveEventStatus(final String eventUid, final EventStatus eventStatus) {
         if (subscription != null && !subscription.isUnsubscribed()) {
             subscription.unsubscribe();
             subscription = null;
@@ -418,20 +419,20 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                     }
                 });
     }
-    private Observable<Program> getProgram(final String programId) {
-        return Observable.create(programInteractor.store().get(programId));
+    private Observable<Program> getProgram(final String programUid) {
+        return Observable.create(programInteractor.store().queryByUid(programUid));
     }
 
     private Single storeEvent(final Event event) {
         return Single.create(eventInteractor.store().save(Arrays.asList(event)));
     }
 
-    private Observable<Event> getEvent(final String eventId) {
-        return Observable.create(eventInteractor.store().get(eventId));
+    private Observable<Event> getEvent(final String eventUid) {
+        return Observable.create(eventInteractor.store().queryByUid(eventUid));
     }
 
     private Observable<ProgramStage> loadProgramStage(final String programId) {
-        return programInteractor.store().get(programId)
+        return programInteractor.store().queryByUid(programId)
                 .map(new Func1<Program, ProgramStage>() {
                     @Override
                     public ProgramStage call(Program program) {

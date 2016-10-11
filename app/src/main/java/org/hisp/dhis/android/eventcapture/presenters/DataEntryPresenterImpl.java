@@ -2,11 +2,11 @@ package org.hisp.dhis.android.eventcapture.presenters;
 
 import org.hisp.dhis.android.eventcapture.model.RxRulesEngine;
 import org.hisp.dhis.android.eventcapture.views.DataEntryView;
-import org.hisp.dhis.client.sdk.core.EventInteractor;
-import org.hisp.dhis.client.sdk.core.OptionSetInteractor;
-import org.hisp.dhis.client.sdk.core.ProgramInteractor;
-import org.hisp.dhis.client.sdk.core.TrackedEntityDataValueInteractor;
-import org.hisp.dhis.client.sdk.core.UserInteractor;
+import org.hisp.dhis.client.sdk.core.event.EventInteractor;
+import org.hisp.dhis.client.sdk.core.option.OptionSetInteractor;
+import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
+import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractor;
+import org.hisp.dhis.client.sdk.core.user.UserInteractor;
 import org.hisp.dhis.client.sdk.models.dataelement.DataElement;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.option.Option;
@@ -550,7 +550,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
     }
 
     private Observable<Boolean> onFormEntityChanged(FormEntity formEntity) {
-        return trackedEntityDataValueInteractor.save(mapFormEntityToDataValue(formEntity));
+        return trackedEntityDataValueInteractor.store().save(mapFormEntityToDataValue(formEntity));
     }
 
     private TrackedEntityDataValue mapFormEntityToDataValue(FormEntity entity) {
@@ -597,14 +597,14 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
     }
 
     private Observable<Event> getEvent(String uid) {
-        return Observable.create(eventInteractor.store().get(uid));
+        return Observable.create(eventInteractor.store().queryByUid(uid));
     }
 
     private Observable<Program> getProgram(String uid) {
-        return Observable.create(programInteractor.store().get(uid));
+        return Observable.create(programInteractor.store().queryByUid(uid));
     }
 
     private Observable<OptionSet> getOptionSets(String uid) {
-        return Observable.create(optionSetInteractor.store().get(uid));
+        return Observable.create(optionSetInteractor.store().queryByUid(uid));
     }
 }

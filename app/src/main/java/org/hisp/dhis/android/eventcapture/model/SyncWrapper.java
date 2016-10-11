@@ -28,13 +28,9 @@
 
 package org.hisp.dhis.android.eventcapture.model;
 
-import org.hisp.dhis.client.sdk.android.api.utils.DefaultOnSubscribe;
-import org.hisp.dhis.client.sdk.android.event.EventInteractor;
-import org.hisp.dhis.client.sdk.android.organisationunit.UserOrganisationUnitInteractor;
-import org.hisp.dhis.client.sdk.android.program.UserProgramInteractor;
-import org.hisp.dhis.client.sdk.core.common.utils.ModelUtils;
-import org.hisp.dhis.client.sdk.core.program.ProgramFields;
-import org.hisp.dhis.client.sdk.models.common.state.Action;
+import org.hisp.dhis.client.sdk.core.event.EventInteractor;
+import org.hisp.dhis.client.sdk.core.organisationunit.OrganisationUnitInteractor;
+import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.organisationunit.OrganisationUnit;
 import org.hisp.dhis.client.sdk.models.program.Program;
@@ -56,19 +52,19 @@ public class SyncWrapper {
     private final SyncDateWrapper syncDateWrapper;
 
     // metadata
-    private final UserOrganisationUnitInteractor userOrganisationUnitInteractor;
-    private final UserProgramInteractor userProgramInteractor;
+    private final OrganisationUnitInteractor organisationUnitInteractor;
+    private final ProgramInteractor programInteractor;
 
     // data
     private final EventInteractor eventInteractor;
 
-    public SyncWrapper(UserOrganisationUnitInteractor userOrganisationUnitInteractor,
-                       UserProgramInteractor userProgramInteractor,
+    public SyncWrapper(OrganisationUnitInteractor organisationUnitInteractor,
+                       ProgramInteractor programInteractor,
                        EventInteractor eventInteractor,
                        SyncDateWrapper syncDateWrapper
     ) {
-        this.userOrganisationUnitInteractor = userOrganisationUnitInteractor;
-        this.userProgramInteractor = userProgramInteractor;
+        this.organisationUnitInteractor = organisationUnitInteractor;
+        this.programInteractor = programInteractor;
         this.eventInteractor = eventInteractor;
         this.syncDateWrapper = syncDateWrapper;
     }
@@ -77,8 +73,8 @@ public class SyncWrapper {
         Set<ProgramType> programTypes = new HashSet<>();
         programTypes.add(ProgramType.WITHOUT_REGISTRATION);
 
-        return Observable.zip(userOrganisationUnitInteractor.pull(),
-                userProgramInteractor.pull(ProgramFields.DESCENDANTS, programTypes),
+        return Observable.zip(organisationUnitInteractor.pull(),
+                programInteractor.pull(ProgramFields.DESCENDANTS, programTypes),
                 new Func2<List<OrganisationUnit>, List<Program>, List<Program>>() {
                     @Override
                     public List<Program> call(List<OrganisationUnit> units, List<Program> programs) {

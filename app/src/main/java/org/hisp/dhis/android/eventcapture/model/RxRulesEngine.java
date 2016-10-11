@@ -1,8 +1,8 @@
 package org.hisp.dhis.android.eventcapture.model;
 
-import org.hisp.dhis.client.sdk.core.EventInteractor;
-import org.hisp.dhis.client.sdk.core.ProgramInteractor;
-import org.hisp.dhis.client.sdk.core.UserInteractor;
+import org.hisp.dhis.client.sdk.core.event.EventInteractor;
+import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
+import org.hisp.dhis.client.sdk.core.user.UserInteractor;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.organisationunit.OrganisationUnit;
 import org.hisp.dhis.client.sdk.models.program.Program;

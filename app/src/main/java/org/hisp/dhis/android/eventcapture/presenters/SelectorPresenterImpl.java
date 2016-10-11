@@ -30,9 +30,9 @@ package org.hisp.dhis.android.eventcapture.presenters;
 
 import org.hisp.dhis.android.eventcapture.model.SyncWrapper;
 import org.hisp.dhis.android.eventcapture.views.SelectorView;
-import org.hisp.dhis.client.sdk.core.ApiException;
-import org.hisp.dhis.client.sdk.core.EventInteractor;
-import org.hisp.dhis.client.sdk.core.ProgramInteractor;
+import org.hisp.dhis.client.sdk.core.commons.ApiException;
+import org.hisp.dhis.client.sdk.core.event.EventInteractor;
+import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.models.dataelement.DataElement;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.organisationunit.OrganisationUnit;

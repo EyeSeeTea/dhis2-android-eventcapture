@@ -5,8 +5,8 @@ import org.hisp.dhis.android.eventcapture.presenters.DataEntryPresenter;
 import org.hisp.dhis.android.eventcapture.presenters.DataEntryPresenterImpl;
 import org.hisp.dhis.android.eventcapture.presenters.FormSectionPresenter;
 import org.hisp.dhis.android.eventcapture.presenters.FormSectionPresenterImpl;
-import org.hisp.dhis.client.sdk.core.EventInteractor;
-import org.hisp.dhis.client.sdk.core.UserInteractor;
+import org.hisp.dhis.client.sdk.core.event.EventInteractor;
+import org.hisp.dhis.client.sdk.core.user.UserInteractor;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
 import javax.annotation.Nullable;

@@ -2,11 +2,11 @@ package org.hisp.dhis.android.eventcapture.presenters;
 
 import org.hisp.dhis.android.eventcapture.model.RxRulesEngine;
 import org.hisp.dhis.android.eventcapture.views.DataEntryView;
-import org.hisp.dhis.client.sdk.core.EventInteractor;
-import org.hisp.dhis.client.sdk.core.OptionSetInteractor;
-import org.hisp.dhis.client.sdk.core.ProgramInteractor;
-import org.hisp.dhis.client.sdk.core.TrackedEntityDataValueInteractor;
-import org.hisp.dhis.client.sdk.core.UserInteractor;
+import org.hisp.dhis.client.sdk.core.event.EventInteractor;
+import org.hisp.dhis.client.sdk.core.option.OptionSetInteractor;
+import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
+import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractor;
+import org.hisp.dhis.client.sdk.core.user.UserInteractor;
 import org.hisp.dhis.client.sdk.models.dataelement.DataElement;
 import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.option.Option;

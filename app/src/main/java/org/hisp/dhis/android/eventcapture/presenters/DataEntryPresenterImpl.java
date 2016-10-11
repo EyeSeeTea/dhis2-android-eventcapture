@@ -18,7 +18,6 @@ import org.hisp.dhis.client.sdk.models.program.ProgramStageSection;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityDataValue;
 import org.hisp.dhis.client.sdk.rules.RuleEffect;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.RxOnValueChangedListener;
-import org.hisp.dhis.client.sdk.ui.bindings.commons.RxUtils;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.FormEntity;
 import org.hisp.dhis.client.sdk.ui.models.FormEntityAction;
@@ -63,7 +62,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
     private final OptionSetInteractor optionSetInteractor;
     private final ProgramInteractor programInteractor;
     private final EventInteractor eventInteractor;
-    private final TrackedEntityDataValueInteractor dataValueInteractor;
+    private final TrackedEntityDataValueInteractor trackedEntityDataValueInteractor;
 
     private final RxRulesEngine rxRulesEngine;
 
@@ -78,14 +77,14 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                                   ProgramInteractor programInteractor,
                                   OptionSetInteractor optionSetInteractor,
                                   EventInteractor eventInteractor,
-                                  TrackedEntityDataValueInteractor dataValueInteractor,
+                                  TrackedEntityDataValueInteractor trackedEntityDataValueInteractor,
                                   RxRulesEngine rxRulesEngine, Logger logger) {
         this.currentUserInteractor = currentUserInteractor;
         this.optionSetInteractor = optionSetInteractor;
         this.programInteractor = programInteractor;
 
         this.eventInteractor = eventInteractor;
-        this.dataValueInteractor = dataValueInteractor;
+        this.trackedEntityDataValueInteractor = trackedEntityDataValueInteractor;
         this.rxRulesEngine = rxRulesEngine;
 
         this.logger = logger;
@@ -125,7 +124,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                     @Override
                     public Observable<SimpleEntry<List<FormEntity>, List<FormEntityAction>>> call(
                             final List<FormEntityAction> formEntityActions) {
-                        return Observable.zip(eventInteractor.store().get(eventId), RxUtils.single(programInteractor.store().get(programId)),
+                        return Observable.zip(getEvent(eventId), getProgram(programId),
                                 new Func2<Event, Program, SimpleEntry<List<FormEntity>, List<FormEntityAction>>>() {
 
                                     @Override
@@ -191,7 +190,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                     @Override
                     public Observable<SimpleEntry<List<FormEntity>, List<FormEntityAction>>> call(
                             final List<FormEntityAction> formEntityActions) {
-                        return Observable.zip(eventInteractor.store().get(eventId), RxUtils.single(programInteractor.store().get(programId)),
+                        return Observable.zip(getEvent(eventId), getProgram(programId),
                                 new Func2<Event, Program, SimpleEntry<List<FormEntity>, List<FormEntityAction>>>() {
 
                                     @Override
@@ -331,8 +330,8 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
 
             OptionSet optionSet = dataElement.getOptionSet();
             if (optionSet != null) {
-                List<Option> options = optionSetInteractor.store().get(
-                        dataElement.getOptionSet().getUid()).getOptions();
+                List<Option> options = getOptionSets(
+                        dataElement.getOptionSet().getUid()).toBlocking().first().getOptions();
                 optionSet.setOptions(options);
             }
         }
@@ -551,7 +550,7 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
     }
 
     private Observable<Boolean> onFormEntityChanged(FormEntity formEntity) {
-        return dataValueInteractor.save(mapFormEntityToDataValue(formEntity));
+        return trackedEntityDataValueInteractor.store().save(mapFormEntityToDataValue(formEntity));
     }
 
     private TrackedEntityDataValue mapFormEntityToDataValue(FormEntity entity) {
@@ -595,5 +594,17 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
         }
 
         return null;
+    }
+
+    private Observable<Event> getEvent(String uid) {
+        return Observable.create(eventInteractor.store().queryByUid(uid));
+    }
+
+    private Observable<Program> getProgram(String uid) {
+        return Observable.create(programInteractor.store().queryByUid(uid));
+    }
+
+    private Observable<OptionSet> getOptionSets(String uid) {
+        return Observable.create(optionSetInteractor.store().queryByUid(uid));
     }
 }

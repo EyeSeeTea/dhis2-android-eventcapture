@@ -15,7 +15,6 @@ import org.hisp.dhis.client.sdk.models.user.User;
 import org.hisp.dhis.client.sdk.rules.RuleEffect;
 import org.hisp.dhis.client.sdk.rules.RuleEngine;
 import org.hisp.dhis.client.sdk.utils.Logger;
-import org.hisp.dhis.client.sdk.utils.ModelUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +33,9 @@ import rx.schedulers.Schedulers;
 import rx.subjects.ReplaySubject;
 import rx.subjects.Subject;
 import rx.subscriptions.CompositeSubscription;
+
+import static org.hisp.dhis.client.sdk.core.ModelUtils.toMap;
+import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
 
 public class RxRulesEngine {
     private static final String TAG = RxRulesEngine.class.getSimpleName();
@@ -69,7 +71,7 @@ public class RxRulesEngine {
             @Override
             public void call(Subscriber<? super Event> subscriber) {
                 try {
-                    subscriber.onNext(eventInteractor.store().get(eventUid));
+                    subscriber.onNext(eventInteractor.store().queryByUid(eventUid));
                 } catch (Exception e) {
                     subscriber.onError(e);
                 }
@@ -89,7 +91,8 @@ public class RxRulesEngine {
                             @Override
                             public void call(SingleSubscriber<? super List<User>> singleSubscriber) {
                                 try {
-                                    singleSubscriber.onSuccess(eventInteractor.store().list(organisationUnit, program));
+                                    singleSubscriber.onSuccess(eventInteractor.store().
+                                            query(organisationUnit.getUid(), program.getUid()));
                                 } catch (Exception e) {
                                     singleSubscriber.onError(e);
                                 }
@@ -106,7 +109,7 @@ public class RxRulesEngine {
                                 eventsMap.clear();
 
                                 // put all existing events into map
-                                eventsMap.putAll(ModelUtils.toMap(eventInteractor.store().list(
+                                eventsMap.putAll(toMap(eventInteractor.store().list(
                                         organisationUnit, program)));
 
                                 // ruleEffectSubject = BehaviorSubject.create();
@@ -137,7 +140,7 @@ public class RxRulesEngine {
         }
 
         final String username = currentUserInteractor.username();
-        subscription.add(eventInteractor.get(currentEvent.getUid())
+        subscription.add(eventInteractor.store().queryByUid(currentEvent.getUid())
                 .switchMap(new Func1<Event, Observable<List<RuleEffect>>>() {
                     @Override
                     public Observable<List<RuleEffect>> call(Event event) {
@@ -187,6 +190,14 @@ public class RxRulesEngine {
     }
 
     private Observable<RuleEngine> loadRulesEngine(Program program) {
+        RuleEngine ruleEngine = new RuleEngine.Builder()
+                .programRuleVariables(program.getProgramRuleVariables())
+                .programRules(program.getProgramRules())
+                .build();
+
+        return Observable.create(ruleEngine);
+
+
         return Observable.zip(loadProgramRules(program), loadProgramRuleVariables(program),
                 new Func2<List<ProgramRule>, List<ProgramRuleVariable>, RuleEngine>() {
                     @Override
@@ -201,7 +212,16 @@ public class RxRulesEngine {
     }
 
     private Observable<List<ProgramRule>> loadProgramRules(Program program) {
-        return programRuleInteractor.list(program)
+        isNull(program, "Program must not be null");
+        List<ProgramRule> programRules;
+
+        if (program.getProgramRules().isEmpty()) {
+            programRules = new ArrayList<>();
+        }
+        return program.getProgramRules();
+
+
+        return programInteractor.store().queryByUid(program.getUid())
                 .map(new Func1<List<ProgramRule>, List<ProgramRule>>() {
                     @Override
                     public List<ProgramRule> call(List<ProgramRule> programRules) {
@@ -221,6 +241,14 @@ public class RxRulesEngine {
     }
 
     private Observable<List<ProgramRuleVariable>> loadProgramRuleVariables(Program program) {
+        List<ProgramRuleVariable> programRuleVariables;
+        if (program.getProgramRuleVariables() == null) {
+            programRuleVariables = new ArrayList<>();
+        } else {
+            programRuleVariables = program.getProgramRuleVariables();
+        }
+
+        return Observable.create(programRuleVariables);
         return programRuleVariableInteractor.list(program)
                 .map(new Func1<List<ProgramRuleVariable>, List<ProgramRuleVariable>>() {
                     @Override
@@ -278,7 +306,7 @@ public class RxRulesEngine {
                         }
 
                         event.setDataValues(new ArrayList<>(dataValueMap.values()));
-                        return eventInteractor.save(event);
+                        return eventInteractor.store().save(event);
                     }
                 });
     }

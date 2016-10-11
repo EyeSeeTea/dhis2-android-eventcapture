@@ -3,7 +3,7 @@ package org.hisp.dhis.android.eventcapture.views;
 import android.location.Location;
 import android.support.annotation.StringDef;
 
-import org.hisp.dhis.client.sdk.models.event.Event;
+import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.FormSection;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
@@ -34,7 +34,7 @@ public interface FormSectionView extends View {
 
     void showCoordinatesPicker(String latitude, String longitude);
 
-    void showEventStatus(Event.EventStatus eventStatus);
+    void showEventStatus(EventStatus eventStatus);
 
     String getFormSectionLabel(@FormSectionLabelId String formSectionLabel);
 

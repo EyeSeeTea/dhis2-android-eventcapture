@@ -8,9 +8,11 @@ import org.hisp.dhis.android.eventcapture.views.FormSectionView;
 import org.hisp.dhis.client.sdk.core.event.EventInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.models.event.Event;
+import org.hisp.dhis.client.sdk.models.event.EventStatus;
 import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.models.program.ProgramStage;
 import org.hisp.dhis.client.sdk.models.program.ProgramStageSection;
+import org.hisp.dhis.client.sdk.models.program.ProgramType;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.FormSection;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
@@ -19,6 +21,7 @@ import org.hisp.dhis.client.sdk.utils.Logger;
 import java.text.SimpleDateFormat;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -27,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import rx.Observable;
+import rx.Single;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -94,7 +98,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
 
         subscription = new CompositeSubscription();
 
-        subscription.add(eventInteractor.store().get(eventUid))
+        subscription.add(getEvent(eventUid)
                 .map(new Func1<Event, Event>() {
                     @Override
                     public Event call(Event event) {
@@ -127,7 +131,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                     public void call(Throwable throwable) {
                         logger.e(TAG, null, throwable);
                     }
-                });
+                }));
     }
 
     @Override
@@ -138,7 +142,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
         }
 
         subscription = new CompositeSubscription();
-        subscription.add(eventInteractor.store().get(eventUid))
+        subscription.add(getEvent(eventUid)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Event>() {
@@ -155,18 +159,18 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                     public void call(Throwable throwable) {
                         logger.e(TAG, null, throwable);
                     }
-                });
+                }));
     }
 
     @Override
-    public void saveEventStatus(final String eventUid, final Event.EventStatus eventStatus) {
+    public void saveEventStatus(final String eventUid, final EventStatus eventStatus) {
         if (subscription != null && !subscription.isUnsubscribed()) {
             subscription.unsubscribe();
             subscription = null;
         }
 
         subscription = new CompositeSubscription();
-        subscription.add(eventInteractor.store().get(eventUid))
+        subscription.add(getEvent(eventUid)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Event>() {
@@ -183,7 +187,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                     public void call(Throwable throwable) {
                         logger.e(TAG, null, throwable);
                     }
-                });
+                }));
     }
 
     private void viewSetLocation(Location location) {
@@ -261,7 +265,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
     }
 
     private Subscription saveEvent(final Event event) {
-        return eventInteractor.store().save(event)
+        return storeEvent(event)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Action1<Boolean>() {
@@ -283,14 +287,14 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
 
     private Subscription showFormPickers(final Event event) {
         final Program program = new Program();
-        program.setUid(event.getProgram());
+        String programId = event.getProgram();
 
-        return loadProgramStage(program)
+        return getProgram(programId)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<ProgramStage>() {
+                .subscribe(new Action1<Program>() {
                     @Override
-                    public void call(ProgramStage programStage) {
+                    public void call(Program program) {
                         if (formSectionView != null) {
 
                             String eventDate = null;
@@ -300,13 +304,22 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                             } else {
                                 eventDate = "";
                             }
+                            ProgramStage currentProgramStage = null;
+                            if(ProgramType.WITHOUT_REGISTRATION.equals(program.getProgramType())) {
+                                currentProgramStage = program.getProgramStages().get(0);
+                            }
+
+                            if(currentProgramStage == null) {
+                                throw new IllegalArgumentException("No stages found for program");
+                            }
+
 
 
                             formSectionView.showReportDatePicker(
-                                    programStage.getExecutionDateLabel(), eventDate);
+                                    currentProgramStage.getExecutionDateLabel(), eventDate);
 
 
-                            if (programStage.isCaptureCoordinates()) {
+                            if (program.isCaptureCoordinates()) {
                                 String latitude = null;
                                 String longitude = null;
 
@@ -333,14 +346,22 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
     }
 
     private Subscription showFormSections(final Event currentEvent) {
-        final Program program = new Program();
-        program.setUid(currentEvent.getProgram());
 
-        return loadProgramStage(program)
-                .map(new Func1<ProgramStage, SimpleEntry<Picker, List<FormSection>>>() {
+        return getProgram(currentEvent.getProgram())
+                .map(new Func1<Program, SimpleEntry<Picker, List<FormSection>>>() {
                     @Override
-                    public SimpleEntry<Picker, List<FormSection>> call(ProgramStage programStage) {
-                        List<ProgramStageSection> stageSections = programStage.getProgramStageSections();
+                    public SimpleEntry<Picker, List<FormSection>> call(Program program) {
+                        ProgramStage currentProgramStage = null;
+
+                        if(ProgramType.WITHOUT_REGISTRATION.equals(program.getProgramType())) {
+                            currentProgramStage = program.getProgramStages().get(0);
+                        }
+
+                        if(currentProgramStage == null) {
+                            throw new IllegalArgumentException("No stages found for program");
+                        }
+
+                        List<ProgramStageSection> stageSections = currentProgramStage.getProgramStageSections();
 
                         String chooseSectionPrompt = null;
                         if (formSectionView != null) {
@@ -350,7 +371,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
 
                         // fetching prompt from resources
                         Picker picker = new Picker.Builder()
-                                .id(programStage.getUid())
+                                .id(program.getUid())
                                 .name(chooseSectionPrompt)
                                 .build();
 
@@ -398,22 +419,33 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                     }
                 });
     }
+    private Observable<Program> getProgram(final String programUid) {
+        return Observable.create(programInteractor.store().queryByUid(programUid));
+    }
 
-    private Observable<ProgramStage> loadProgramStage(final Program program) {
-        return programInteractor.store().get(program.getUid())
+    private Single storeEvent(final Event event) {
+        return Single.create(eventInteractor.store().save(Arrays.asList(event)));
+    }
+
+    private Observable<Event> getEvent(final String eventUid) {
+        return Observable.create(eventInteractor.store().queryByUid(eventUid));
+    }
+
+    private Observable<ProgramStage> loadProgramStage(final String programId) {
+        return programInteractor.store().queryByUid(programId)
                 .map(new Func1<Program, ProgramStage>() {
                     @Override
-                    public ProgramStage call(Program program1) {
+                    public ProgramStage call(Program program) {
                         // since this form is intended to be used in event capture
                         // and programs for event capture apps consist only from one
                         // and only one program stage, we can just retrieve it from the list
-                        if (program1 == null) {
+                        if (program == null) {
                             logger.e(TAG, "Form construction failed. No program " +
-                                    "stages are assigned to given program: " + program.getUid());
+                                    "stages are assigned to given program: " + programId);
                             return null;
                         }
 
-                        return program1.getProgramStages().get(0);
+                        return program.getProgramStages().get(0);
                     }
                 });
     }

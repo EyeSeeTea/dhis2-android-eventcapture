@@ -55,7 +55,6 @@ import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
-
 import java.net.HttpURLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -76,10 +75,6 @@ import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 
-import static org.hisp.dhis.client.sdk.models.common.State.ERROR;
-import static org.hisp.dhis.client.sdk.models.common.State.SYNCED;
-import static org.hisp.dhis.client.sdk.models.common.State.TO_POST;
-import static org.hisp.dhis.client.sdk.models.common.State.TO_UPDATE;
 import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
 import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
 

@@ -41,7 +41,6 @@ import org.hisp.dhis.client.sdk.core.program.ProgramInteractor;
 import org.hisp.dhis.client.sdk.core.program.ProgramInteractorImpl;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractor;
 import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueInteractorImpl;
-import org.hisp.dhis.client.sdk.core.trackedentity.TrackedEntityDataValueStore;
 import org.hisp.dhis.client.sdk.core.user.UserInteractor;
 import org.hisp.dhis.client.sdk.ui.AppPreferences;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandler;
@@ -165,7 +164,7 @@ public class UserModule implements DefaultUserModule {
     @Provides
     @PerUser
     public EventInteractor providesEventInteractor() {
-        return new EventInteractorImpl(null,null);
+        return new EventInteractorImpl(null, null);
     }
 
     @Provides

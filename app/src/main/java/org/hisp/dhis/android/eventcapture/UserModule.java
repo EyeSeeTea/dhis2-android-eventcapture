@@ -165,7 +165,7 @@ public class UserModule implements DefaultUserModule {
     @Provides
     @PerUser
     public EventInteractor providesEventInteractor() {
-        return new EventInteractorImpl();
+        return new EventInteractorImpl(null, null);
     }
 
     @Provides
@@ -177,6 +177,6 @@ public class UserModule implements DefaultUserModule {
     @Provides
     @PerUser
     public TrackedEntityDataValueInteractor providesTrackedEntityDataValueInteractor() {
-        return new TrackedEntityDataValueInteractorImpl();
+        return new TrackedEntityDataValueInteractorImpl(null);
     }
 }

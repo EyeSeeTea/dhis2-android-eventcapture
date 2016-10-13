@@ -55,7 +55,6 @@ import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntityFilter;
 import org.hisp.dhis.client.sdk.utils.Logger;
 
-
 import java.net.HttpURLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -76,10 +75,6 @@ import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import rx.subscriptions.CompositeSubscription;
 
-import static org.hisp.dhis.client.sdk.models.common.State.ERROR;
-import static org.hisp.dhis.client.sdk.models.common.State.SYNCED;
-import static org.hisp.dhis.client.sdk.models.common.State.TO_POST;
-import static org.hisp.dhis.client.sdk.models.common.State.TO_UPDATE;
 import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
 import static org.hisp.dhis.client.sdk.utils.StringUtils.isEmpty;
 
@@ -270,11 +265,11 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                                     "Program id doesn't exist");
                         }
                         ProgramStage programStage = null;
-                        if(ProgramType.WITHOUT_REGISTRATION.equals(program.getProgramType())) {
+                        if (ProgramType.WITHOUT_REGISTRATION.equals(program.getProgramType())) {
                             programStage = program.getProgramStages().get(0);
                         }
 
-                        if(programStage == null) {
+                        if (programStage == null) {
                             throw new IllegalArgumentException("No stages found for program");
                         }
 
@@ -282,7 +277,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                         Observable stageElementsObservable = Observable.just(programStage.getProgramStageDataElements());
 
 
-                        return Observable.zip(stageElementsObservable, listEventsByOrgUnitProgram(orgUnit,program),
+                        return Observable.zip(stageElementsObservable, listEventsByOrgUnitProgram(orgUnit, program),
                                 new Func2<List<ProgramStageDataElement>, List<Event>, List<ReportEntity>>() {
 
                                     @Override
@@ -348,7 +343,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                         String eventDateString = Calendar.getInstance().getTime().toString();
                         Date eventDate = null;
                         try {
-                             eventDate = simpleDateFormat.parse(eventDateString);
+                            eventDate = simpleDateFormat.parse(eventDateString);
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
@@ -385,10 +380,9 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                     public Observable<Boolean> call(Event event) {
                         int eventDeleted = eventInteractor.store().delete(event);
 
-                        if(eventDeleted > 0) {
+                        if (eventDeleted > 0) {
                             return Observable.just(true);
-                        }
-                        else return Observable.just(false);
+                        } else return Observable.just(false);
                     }
                 })
                 .subscribeOn(Schedulers.io())

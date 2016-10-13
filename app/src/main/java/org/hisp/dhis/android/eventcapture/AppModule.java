@@ -32,6 +32,7 @@ import android.app.Application;
 import android.content.Context;
 
 import org.hisp.dhis.android.eventcapture.model.SyncWrapper;
+import org.hisp.dhis.client.sdk.core.D2;
 import org.hisp.dhis.client.sdk.core.commons.LoggerImpl;
 import org.hisp.dhis.client.sdk.ui.AppPreferences;
 import org.hisp.dhis.client.sdk.ui.AppPreferencesImpl;
@@ -67,6 +68,13 @@ public class AppModule implements DefaultAppModule {
     @Override
     public Application providesApplication() {
         return application;
+    }
+
+    @Provides
+    @Singleton
+    @Override
+    public D2 providesSdkInstance(Application application) {
+        return D2.builder(application).build();
     }
 
     @Provides

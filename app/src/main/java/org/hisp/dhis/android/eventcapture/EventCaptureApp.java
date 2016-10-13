@@ -48,7 +48,6 @@ import okhttp3.logging.HttpLoggingInterceptor;
 
 import static org.hisp.dhis.client.sdk.utils.Preconditions.isNull;
 
-// TODO Add LeakCanary support
 public final class EventCaptureApp extends Application {
     private AppComponent appComponent;
     private UserComponent userComponent;
@@ -114,7 +113,6 @@ public final class EventCaptureApp extends Application {
     private void init(Context context) {
         OkHttpClient okHttpClient = providesOkHttpClient();
 
-        // TODO REFACTOR: init D2
         // D2.Flavor flavor = providesFlavor(okHttpClient, new LoggerImpl());
         // D2.init(context, flavor);
     }

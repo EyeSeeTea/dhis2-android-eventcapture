@@ -82,15 +82,16 @@ public class UserModule implements DefaultUserModule {
 
         if (!isEmpty(serverUrl)) {
             // it can throw exception in case if configuration has failed
-            D2.configure(serverUrl);
+            // TODO REFACTOR
+            // D2 d2 = D2.configure(serverUrl);
         }
     }
 
     @Provides
     @PerUser
     @Override
-    public UserInteractor providesCurrentUserInteractor() {
-        return D2.me();
+    public UserInteractor providesUserInteractor(D2 d2) {
+        return d2.me();
     }
 
     @Provides

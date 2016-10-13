@@ -38,7 +38,7 @@ ext {
     ]
     libraries = [
             // dhis libs
-            dhisCommonsVersion : "1.1",
+            dhisCommonsVersion      : "1.1",
 
             // android libs
             supportVersion          : "23.4.0",
@@ -62,8 +62,9 @@ ext {
             dagger                  : "2.2",
 
             // testing libs
+            assertJ                 : "2.5.0",
             jUnitVersion            : "4.12",
-            mockitoVersion          : "1.10.19",
+            mockitoVersion          : "2.2.1",
             powerMockVersion        : "1.6.3",
     ]
 }

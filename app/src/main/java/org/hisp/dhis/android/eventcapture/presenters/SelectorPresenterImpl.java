@@ -265,11 +265,11 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                                     "Program id doesn't exist");
                         }
                         ProgramStage programStage = null;
-                        if(ProgramType.WITHOUT_REGISTRATION.equals(program.getProgramType())) {
+                        if (ProgramType.WITHOUT_REGISTRATION.equals(program.getProgramType())) {
                             programStage = program.getProgramStages().get(0);
                         }
 
-                        if(programStage == null) {
+                        if (programStage == null) {
                             throw new IllegalArgumentException("No stages found for program");
                         }
 
@@ -277,7 +277,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                         Observable stageElementsObservable = Observable.just(programStage.getProgramStageDataElements());
 
 
-                        return Observable.zip(stageElementsObservable, listEventsByOrgUnitProgram(orgUnit,program),
+                        return Observable.zip(stageElementsObservable, listEventsByOrgUnitProgram(orgUnit, program),
                                 new Func2<List<ProgramStageDataElement>, List<Event>, List<ReportEntity>>() {
 
                                     @Override
@@ -343,7 +343,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                         String eventDateString = Calendar.getInstance().getTime().toString();
                         Date eventDate = null;
                         try {
-                             eventDate = simpleDateFormat.parse(eventDateString);
+                            eventDate = simpleDateFormat.parse(eventDateString);
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
@@ -380,10 +380,9 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                     public Observable<Boolean> call(Event event) {
                         int eventDeleted = eventInteractor.store().delete(event);
 
-                        if(eventDeleted > 0) {
+                        if (eventDeleted > 0) {
                             return Observable.just(true);
-                        }
-                        else return Observable.just(false);
+                        } else return Observable.just(false);
                     }
                 })
                 .subscribeOn(Schedulers.io())

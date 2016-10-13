@@ -132,12 +132,12 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                                             Event event, Program program) {
                                         ProgramStage currentProgramStage = null;
                                         for (ProgramStage programStage : program.getProgramStages()) {
-                                            if(programStage.getUid().equals(programStageId)) {
+                                            if (programStage.getUid().equals(programStageId)) {
                                                 currentProgramStage = programStage;
                                             }
                                         }
 
-                                        if(currentProgramStage == null) {
+                                        if (currentProgramStage == null) {
                                             throw new IllegalArgumentException("No program stage uid found for programStageId: " + programStageId);
                                         }
                                         List<ProgramStageDataElement> dataElements =
@@ -200,22 +200,22 @@ public class DataEntryPresenterImpl implements DataEntryPresenter {
                                         ProgramStageSection currentProgramStageSection = null;
 
                                         for (ProgramStage stage : program.getProgramStages()) {
-                                            if(stage.getUid().equals(programStageId)) {
+                                            if (stage.getUid().equals(programStageId)) {
                                                 currentProgramStage = stage;
                                             }
                                         }
 
-                                        if(currentProgramStage == null) {
+                                        if (currentProgramStage == null) {
                                             throw new IllegalArgumentException("No program stage found for programStageId: " + programStageId);
                                         }
 
                                         for (ProgramStageSection stageSection : currentProgramStage.getProgramStageSections()) {
-                                            if(stageSection.getUid().equals(programStageSectionId)) {
+                                            if (stageSection.getUid().equals(programStageSectionId)) {
                                                 currentProgramStageSection = stageSection;
                                             }
                                         }
 
-                                        if(currentProgramStageSection == null) {
+                                        if (currentProgramStageSection == null) {
                                             throw new IllegalArgumentException("No program stage section found for programStageSectionId: " + programStageSectionId);
                                         }
                                         List<ProgramStageDataElement> dataElements =

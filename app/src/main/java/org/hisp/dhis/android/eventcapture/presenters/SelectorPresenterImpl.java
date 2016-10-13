@@ -48,7 +48,6 @@ import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityDataValue;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.ApiExceptionHandler;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.AppError;
 import org.hisp.dhis.client.sdk.ui.bindings.commons.SessionPreferences;
-import org.hisp.dhis.client.sdk.ui.bindings.commons.SyncDateWrapper;
 import org.hisp.dhis.client.sdk.ui.bindings.views.View;
 import org.hisp.dhis.client.sdk.ui.models.Picker;
 import org.hisp.dhis.client.sdk.ui.models.ReportEntity;
@@ -85,22 +84,20 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     private final ProgramInteractor programInteractor;
     private final EventInteractor eventInteractor;
     private final SessionPreferences sessionPreferences;
-    private final SyncDateWrapper syncDateWrapper;
     private final ApiExceptionHandler apiExceptionHandler;
     private final SyncWrapper syncWrapper;
     private final Logger logger;
+    private final SimpleDateFormat simpleDateFormat;
     private CompositeSubscription subscription;
     private boolean hasSyncedBefore;
     private SelectorView selectorView;
     private boolean isSyncing;
-    private final SimpleDateFormat simpleDateFormat;
-    private ArrayList reportEntityDataElementFilter;
+    private List<ReportEntityFilter> reportEntityDataElementFilter;
 
     public SelectorPresenterImpl(OrganisationUnitInteractor interactor,
                                  ProgramInteractor programInteractor,
                                  EventInteractor eventInteractor,
                                  SessionPreferences sessionPreferences,
-                                 SyncDateWrapper syncDateWrapper,
                                  SyncWrapper syncWrapper,
                                  ApiExceptionHandler apiExceptionHandler,
                                  Logger logger) {
@@ -108,7 +105,6 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         this.programInteractor = programInteractor;
         this.eventInteractor = eventInteractor;
         this.sessionPreferences = sessionPreferences;
-        this.syncDateWrapper = syncDateWrapper;
         this.syncWrapper = syncWrapper;
         this.apiExceptionHandler = apiExceptionHandler;
         this.logger = logger;
@@ -251,11 +247,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
     }
 
     @Override
-    public void listEvents(String organisationUnitId, final String programId) {
-        final OrganisationUnit orgUnit = new OrganisationUnit();
-
-        orgUnit.setUid(organisationUnitId);
-
+    public void listEvents(final String organisationUnitId, final String programId) {
         subscription.add(getProgram(programId)
                 .switchMap(new Func1<Program, Observable<List<ReportEntity>>>() {
                     @Override
@@ -273,11 +265,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                             throw new IllegalArgumentException("No stages found for program");
                         }
 
-
-                        Observable stageElementsObservable = Observable.just(programStage.getProgramStageDataElements());
-
-
-                        return Observable.zip(stageElementsObservable, listEventsByOrgUnitProgram(orgUnit, program),
+                        return Observable.zip(Observable.just(programStage.getProgramStageDataElements()), listEventsByOrgUnitProgram(organisationUnitId, programId),
                                 new Func2<List<ProgramStageDataElement>, List<Event>, List<ReportEntity>>() {
 
                                     @Override
@@ -286,7 +274,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
                                         reportEntityDataElementFilter = sessionPreferences.getReportEntityDataModelFilters(
                                                 programId,
                                                 mapDataElementNameToDefaultViewSetting(stageDataElements));
-                                        return transformEvents(stageDataElements, events);
+                                        return transformEvents(events);
                                     }
                                 });
                     }
@@ -436,8 +424,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         sessionPreferences.setReportEntityDataModelFilters(programId, filters);
     }
 
-    private List<ReportEntity> transformEvents(List<ProgramStageDataElement> dataElements,
-                                               List<Event> events) {
+    private List<ReportEntity> transformEvents(List<Event> events) {
 
         // preventing additional work
         if (events == null || events.isEmpty()) {
@@ -557,6 +544,7 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         Picker rootPicker = new Picker.Builder()
                 .hint(chooseOrganisationUnit)
                 .build();
+
         for (String unitKey : organisationUnitMap.keySet()) {
             // creating organisation unit picker items
             OrganisationUnit organisationUnit = organisationUnitMap.get(unitKey);
@@ -626,8 +614,8 @@ public class SelectorPresenterImpl implements SelectorPresenter {
         return Observable.just(programInteractor.store().queryByUid(uid));
     }
 
-    private Observable<List<Event>> listEventsByOrgUnitProgram(OrganisationUnit organisationUnit, Program program) {
-        return Observable.just(eventInteractor.store().query(organisationUnit.getUid(), program.getUid()));
+    private Observable<List<Event>> listEventsByOrgUnitProgram(String organisationUnitUid, String programUid) {
+        return Observable.just(eventInteractor.store().query(organisationUnitUid, programUid));
     }
 
     private Observable<Event> getEvent(String uid) {

@@ -69,7 +69,7 @@ public interface SelectorView extends View {
 
     String getPickerLabel(@PickerLabelId String pickerLabelId);
 
-    void setReportEntityLabelFilters(ArrayList<ReportEntityFilter> filters);
+    void setReportEntityLabelFilters(List<ReportEntityFilter> filters);
 
     @Retention(RetentionPolicy.SOURCE)
     @StringDef({

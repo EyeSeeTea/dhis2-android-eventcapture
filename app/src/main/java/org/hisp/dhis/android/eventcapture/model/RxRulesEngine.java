@@ -7,7 +7,6 @@ import org.hisp.dhis.client.sdk.models.event.Event;
 import org.hisp.dhis.client.sdk.models.program.Program;
 import org.hisp.dhis.client.sdk.models.program.ProgramRuleActionType;
 import org.hisp.dhis.client.sdk.models.trackedentity.TrackedEntityDataValue;
-import org.hisp.dhis.client.sdk.models.user.User;
 import org.hisp.dhis.client.sdk.rules.RuleEffect;
 import org.hisp.dhis.client.sdk.rules.RuleEngine;
 import org.hisp.dhis.client.sdk.utils.Logger;
@@ -91,7 +90,6 @@ public class RxRulesEngine {
                                 // put all existing events into map
                                 eventsMap.putAll(toMap(events));
 
-                                // ruleEffectSubject = BehaviorSubject.create();
                                 ruleEffectSubject = ReplaySubject.createWithSize(1);
                                 ruleEffectSubject.subscribeOn(Schedulers.computation());
                                 ruleEffectSubject.observeOn(AndroidSchedulers.mainThread());
@@ -106,11 +104,6 @@ public class RxRulesEngine {
 
     private Observable<List<Event>> queryEvents(String organisationUnitUid, String programUid) {
         return Observable.just(eventInteractor.store().query(organisationUnitUid, programUid));
-    }
-
-    //TODO fix hack for getting first user
-    private Observable<User> loadUser() {
-        return Observable.just(currentUserInteractor.store().queryAll().get(0));
     }
 
     public void notifyDataSetChanged() {

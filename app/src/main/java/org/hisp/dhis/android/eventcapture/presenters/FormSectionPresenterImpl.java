@@ -21,7 +21,6 @@ import org.hisp.dhis.client.sdk.utils.Logger;
 import java.text.SimpleDateFormat;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -295,8 +294,7 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                     @Override
                     public void call(Program program) {
                         if (formSectionView != null) {
-
-                            String eventDate = null;
+                            String eventDate;
 
                             if (event.getEventDate() != null) {
                                 eventDate = simpleDateFormat.format(event.getEventDate());
@@ -304,14 +302,13 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                                 eventDate = "";
                             }
                             ProgramStage currentProgramStage = null;
-                            if(ProgramType.WITHOUT_REGISTRATION.equals(program.getProgramType())) {
+                            if (ProgramType.WITHOUT_REGISTRATION.equals(program.getProgramType())) {
                                 currentProgramStage = program.getProgramStages().get(0);
                             }
 
-                            if(currentProgramStage == null) {
+                            if (currentProgramStage == null) {
                                 throw new IllegalArgumentException("No stages found for program");
                             }
-
 
 
                             formSectionView.showReportDatePicker(
@@ -352,11 +349,11 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                     public SimpleEntry<Picker, List<FormSection>> call(Program program) {
                         ProgramStage currentProgramStage = null;
 
-                        if(ProgramType.WITHOUT_REGISTRATION.equals(program.getProgramType())) {
+                        if (ProgramType.WITHOUT_REGISTRATION.equals(program.getProgramType())) {
                             currentProgramStage = program.getProgramStages().get(0);
                         }
 
-                        if(currentProgramStage == null) {
+                        if (currentProgramStage == null) {
                             throw new IllegalArgumentException("No stages found for program");
                         }
 
@@ -418,11 +415,12 @@ public class FormSectionPresenterImpl implements FormSectionPresenter {
                     }
                 });
     }
+
     private Observable<Program> getProgram(final String programUid) {
         return Observable.just(programInteractor.store().queryByUid(programUid));
     }
 
-    private Single storeEvent(final Event event) {
+    private Single<Boolean> storeEvent(final Event event) {
         return Single.just(eventInteractor.store().save(event));
     }
 

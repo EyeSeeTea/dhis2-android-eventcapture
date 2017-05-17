@@ -14,4 +14,9 @@
     <string name="sync_failed_notification_content">Din DHIS2 data har inte synkroniseras</string>
     <string name="sync_in_progress_notification_title">Synkronisering genomförs</string>
     <string name="sync_in_progress_notification_content">Din DHIS2 data synkroniseras</string>
+    <string name="about_this_app">Om den här appen</string>
+    <string name="app_version">Appversion: %s</string>
+    <string name="last_commit">Commit hash: %s</string>
+    <string name="unavailable">Inte tillgänglig</string>
+    <string name="est_about">Denna app är under underhåll av EyeSeeTea Ltd (http://eyeseetea.com)</string>
 </resources>

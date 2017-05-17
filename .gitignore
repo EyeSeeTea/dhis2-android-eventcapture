@@ -25,6 +25,9 @@ build
 # Windows
 *.db
 
+# last commit file
+app/src/main/res/raw/lastcommit.txt
+
 # Android
 *.apk
 captures

@@ -31,6 +31,7 @@ package org.hisp.dhis.android.eventcapture.fragments;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.Loader;
 import android.view.ContextMenu;
 import android.view.MenuInflater;
@@ -41,6 +42,8 @@ import android.widget.AdapterView;
 import com.raizlabs.android.dbflow.structure.Model;
 import com.squareup.otto.Subscribe;
 
+import org.apache.commons.jexl2.Main;
+import org.hisp.dhis.android.eventcapture.MainActivity;
 import org.hisp.dhis.android.eventcapture.R;
 import org.hisp.dhis.android.eventcapture.fragments.dialogs.ItemStatusDialogFragment;
 import org.hisp.dhis.android.eventcapture.fragments.settings.SettingsFragment;
@@ -91,9 +94,11 @@ public class SelectProgramFragment extends org.hisp.dhis.android.sdk.ui.fragment
 
         if(item.getTitle().toString().equals(getResources().getString(R.string.go_to_dataentry_fragment)))
         {
-            mNavigationHandler.switchFragment(EventDataEntryFragment.newInstance(mState.getOrgUnitId(),mState.getProgramId()
-            , MetaDataController.getProgram(mState.getProgramId()).getProgramStages().get(0).getUid(),
-                    itemRow.getmEvent().getLocalId()), TAG, true);
+            EventDataEntryFragment fragment =EventDataEntryFragment.newInstance(mState.getOrgUnitId(),mState.getProgramId()
+                    , MetaDataController.getProgram(mState.getProgramId()).getProgramStages().get(0).getUid(),
+                    itemRow.getmEvent().getLocalId());
+            mNavigationHandler.switchFragment(fragment, TAG, true);
+            mNavigationHandler.setBackPressedListener(fragment);
         }
         else if(item.getTitle().toString().equals(getResources().getString(org.hisp.dhis.android.sdk.R.string.delete)))
         {
@@ -165,6 +170,7 @@ public class SelectProgramFragment extends org.hisp.dhis.android.sdk.ui.fragment
                     eventClick.getItem().getLocalId()
             );
             mNavigationHandler.switchFragment(fragment, DataEntryFragment.TAG, true);
+            MainActivity.mBackPressedListener = fragment;
         } else {
             showStatusDialog(eventClick.getItem());
         }
@@ -186,6 +192,7 @@ public class SelectProgramFragment extends org.hisp.dhis.android.sdk.ui.fragment
                 mNavigationHandler.switchFragment(
                         fragment2, DataEntryFragment.TAG, true
                 );
+                MainActivity.mBackPressedListener = fragment2;
                 break;
             }
         }

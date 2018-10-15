@@ -43,7 +43,7 @@ android {
     defaultConfig {
         applicationId "org.hisp.dhis.android.eventcapture_eyeseetea_dev"
         minSdkVersion 15
-        targetSdkVersion 25
+        targetSdkVersion 28
         versionCode 32
         versionName "0.6.0"
     }
